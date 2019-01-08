@@ -21,7 +21,7 @@ class IModel(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def set_matrix(self, data):
+    def set_weights(self, data):
         raise NotImplementedError()
 
     # might not be needed
