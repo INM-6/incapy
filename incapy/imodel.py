@@ -6,7 +6,7 @@ class IModel(ABC):
 
     @abstractmethod
     def __init__(self):
-        raise NotImplementedError()
+        pass
 
     @abstractmethod
     def add_listener(self, view):
@@ -21,7 +21,7 @@ class IModel(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def set_matrix(self, data):
+    def set_weights(self, data):
         raise NotImplementedError()
 
     # might not be needed

@@ -7,6 +7,7 @@ hv.extension('bokeh')
 class JupyterView(IView):
 
     def __init__(self, model):
+        super().__init__(model)
         self.pipe = Pipe(data=[])
         self.dynamic_map = hv.DynamicMap(hv.Graph, streams=[self.pipe])
         # TODO change padding size accordingly

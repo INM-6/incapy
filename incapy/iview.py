@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 class IView(ABC):
     @abstractmethod
     def __init__(self, model):
-        raise NotImplementedError()
+        pass
 
     @abstractmethod
     def _register(self, model):

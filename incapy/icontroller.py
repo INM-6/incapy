@@ -6,7 +6,7 @@ class IController(ABC):
 
     @abstractmethod
     def __init__(self, model):
-        raise NotImplementedError()
+        pass
 
     @abstractmethod
     def set_matrix(self):
