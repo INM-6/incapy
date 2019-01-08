@@ -1,8 +1,11 @@
+from incapy.graph_controller import GraphAlgorithm
+from incapy.graph_model import GraphModel
+from incapy.jupyter_view import JupyterView
 
 
 class Incapy():
 
-    def __init__(self, model_class, view_class, controller_class):
+    def __init__(self, model_class=GraphModel, view_class=JupyterView, controller_class=GraphAlgorithm):
         raise NotImplementedError()
 
     def add_view(self, view):
