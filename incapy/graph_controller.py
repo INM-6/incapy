@@ -1,11 +1,13 @@
 from incapy.load_data import load_data_random
 from incapy.icontroller import IController
+import time
 
 
 class GraphAlgorithm(IController):
 
     def __init__(self, model):
         super().__init__(model)
+        self.model = model
         load_data_random(model, 10)
 
     def set_matrix(self):
@@ -13,7 +15,9 @@ class GraphAlgorithm(IController):
         raise NotImplementedError()
 
     def start_iteration(self):
-        raise NotImplementedError()
+        while True:
+            time.sleep(1)
+            load_data_random(self.model, 10)
 
     def stop_iteration(self):
         raise NotImplementedError

@@ -17,7 +17,7 @@ class Incapy():
         raise NotImplementedError()
 
     def start(self):
-        raise NotImplementedError()
+        self.controller.start_iteration()
 
     def stop(self):
         raise NotImplementedError()

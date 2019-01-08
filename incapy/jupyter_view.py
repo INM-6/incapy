@@ -20,6 +20,7 @@ class JupyterView(IView):
 
     def update(self, data):
         self.pipe.send(data)
+        print(self.dynamic_map.streams)
 
     def _register(self, model):
         model.add_listener(self)
