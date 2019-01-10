@@ -46,3 +46,6 @@ class GraphModel(IModel):
                 self.edgeSource.append(source)
                 self.edgeTarget.append(target)
         self._update_view()
+
+    def set_edges(self):
+        pass

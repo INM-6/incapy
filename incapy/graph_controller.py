@@ -1,4 +1,4 @@
-from .load_data import load_data_random
+from .load_data import load_data
 from .icontroller import IController
 import time
 
@@ -8,7 +8,7 @@ class GraphAlgorithm(IController):
     def __init__(self, model):
         super().__init__(model)
         self.model = model
-        load_data_random(model, 10)
+        load_data(model, './data/corr_data.h5')
 
     def set_matrix(self):
         # sends the data to the model and update the matrix every few seconds
@@ -17,7 +17,7 @@ class GraphAlgorithm(IController):
     def start_iteration(self):
         while True:
             time.sleep(1)
-            load_data_random(self.model, 10)
+            load_data(self.model, '')
 
     def stop_iteration(self):
         raise NotImplementedError
