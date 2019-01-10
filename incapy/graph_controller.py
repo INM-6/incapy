@@ -17,11 +17,11 @@ class GraphAlgorithm(IController):
     def populate_model(self):
         # set attributes of the graph
         # TODO graph needs to know weights(cross_correlation) and edge_ids
-        self.model.set_ids(self.loader.vertex_ids)
+        self.model.set_vertex_ids(self.loader.vertex_ids)
         self.model.set_positions(self.loader.positions[:, 1:3].T)
+        self.model.set_edges(self.loader.edge_ids)
 
     def update_weights(self):
-
         # sends the data to the model and update the matrix every few seconds
         self.model.set_weights(self.loader.x_corr[self.current_frame])
         self.current_frame += 1

@@ -5,12 +5,12 @@ class GraphModel(IModel):
 
     def __init__(self):
         super().__init__()
-        self.edgeSource = []
-        self.edgeTarget = []
-        self.edgeWeights = []
-        self.node_indices = []
-        self.nodeX = []
-        self.nodeY = []
+        self.edge_source = []
+        self.edge_target = []
+        self.edge_weights = []
+        self.vertex_indices = []
+        self.vertex_x = []
+        self.vertex_y = []
         self.listeners = []
 
     def add_listener(self, view):
@@ -18,36 +18,31 @@ class GraphModel(IModel):
 
     def _update_view(self):
         for l in self.listeners:
-            l.update(((self.edgeSource, self.edgeTarget), (self.nodeX, self.nodeY, self.node_indices)))
+            l.update(((self.edge_source, self.edge_target), (self.vertex_x, self.vertex_y, self.vertex_indices)))
 
     def set_positions(self, data):
         # TODO: If not numpy array need to loop
         # data = data.T
-        self.nodeX = data[0]
-        self.nodeY = data[1]
+        self.vertex_x = data[0]
+        self.vertex_y = data[1]
         self._update_view()
 
     def set_weights(self, data):
         # TODO: Check data input
-        self.edgeWeights = data
-        print(self.edgeWeights)
+        self.edge_weights = data
+        print(self.edge_weights)
         self._update_view()
 
     # might not be needed
-    def set_ids(self, data):
+    def set_vertex_ids(self, data):
         # TODO: Check data input
-        self.node_indices = data
-        self.edgeSource = []
-        self.edgeTarget = []
-        # TODO: Check if needs to be done together with weights
-        for source in data:
-            for target in data:
-                self.edgeSource.append(source)
-                self.edgeTarget.append(target)
+        self.vertex_indices = data
         self._update_view()
 
-    def set_edges(self):
-        pass
+    def set_edges(self, data):
+        # TODO: Check if needs to be done together with weights
+        self.edge_source = data[0]
+        self.edge_target = data[1]
 
     def get_weights(self):
-        return self.edgeWeights
+        return self.edge_weights

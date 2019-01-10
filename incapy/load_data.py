@@ -25,7 +25,7 @@ class DataLoader:
 
             # Read edge IDs, i.e. an array consisting of pairs of (source, target) that represent edges
             # TODO currently not used
-            self.edge_ids = np.array(file['edgeIDs'])
+            self.edge_ids = np.array(file['edgeIDs']).T
 
             # defines start and stop timestamp for each set of cross-correlations
             # TODO currently not used
@@ -45,7 +45,7 @@ class DataLoader:
 # TODO delete when not needed any more
 def load_data_random(model, num_nodes):
     node_indices = np.arange(num_nodes)
-    model.set_ids(node_indices)
+    model.set_vertex_ids(node_indices)
     positions = np.random.rand(2, num_nodes)
     model.set_positions(positions)
 
