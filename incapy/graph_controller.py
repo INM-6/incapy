@@ -9,16 +9,32 @@ class GraphAlgorithm(IController):
         super().__init__(model)
         self.model = model
         self.loader = DataLoader()
-        self.loader.load_data(model, '../../data/corr_data.h5')
+        self.loader.load_data('../../data/corr_data.h5')
+        self.populate_model()
+        self.current_frame = 1
+        self.update_weights()
 
-    def set_matrix(self):
+    def populate_model(self):
+        # set attributes of the graph
+        # TODO graph needs to know weights(cross_correlation) and edge_ids
+        self.model.set_ids(self.loader.vertex_ids)
+        self.model.set_positions(self.loader.positions[:, 1:3].T)
+
+    def update_weights(self):
+
         # sends the data to the model and update the matrix every few seconds
-        raise NotImplementedError()
+        self.model.set_weights(self.loader.x_corr[self.current_frame])
+        self.current_frame += 1
 
     def start_iteration(self):
         while True:
             time.sleep(1)
-            self.loader.load_data(self.model, '')
+            try:
+                self.update_weights()
+            except IndexError:
+                break
+            # TODO introduce error handling after last iteration of correlations
+            # maybe call stop_iteration
 
     def stop_iteration(self):
         raise NotImplementedError

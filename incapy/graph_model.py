@@ -29,9 +29,8 @@ class GraphModel(IModel):
 
     def set_weights(self, data):
         # TODO: Check data input
-        for i, source in enumerate(data):
-            for j, target in enumerate(source):
-                self.edgeWeights.append(data[i, j])
+        self.edgeWeights = data
+        print(self.edgeWeights)
         self._update_view()
 
     # might not be needed
@@ -49,3 +48,6 @@ class GraphModel(IModel):
 
     def set_edges(self):
         pass
+
+    def get_weights(self):
+        return self.edgeWeights
