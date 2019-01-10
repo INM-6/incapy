@@ -1,6 +1,6 @@
-from incapy.graph_controller import GraphAlgorithm
-from incapy.graph_model import GraphModel
-from incapy.jupyter_view import JupyterView
+from .graph_controller import GraphAlgorithm
+from .graph_model import GraphModel
+from .jupyter_view import JupyterView
 
 
 class Incapy():

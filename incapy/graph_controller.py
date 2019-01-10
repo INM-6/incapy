@@ -1,5 +1,5 @@
-from incapy.load_data import load_data_random
-from incapy.icontroller import IController
+from .load_data import load_data_random
+from .icontroller import IController
 import time
 
 
