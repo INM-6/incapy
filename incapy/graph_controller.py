@@ -22,6 +22,7 @@ class GraphAlgorithm(IController):
         self.model.set_edges(self.loader.edge_ids)
 
     def update_weights(self):
+        # TODO calculate weights from correlation beforehand (1-correlation)
         # sends the data to the model and update the matrix every few seconds
         self.model.set_weights(self.loader.x_corr[self.current_frame])
         self.current_frame += 1
