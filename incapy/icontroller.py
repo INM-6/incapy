@@ -9,7 +9,7 @@ class IController(ABC):
         pass
 
     @abstractmethod
-    def set_matrix(self):
+    def update_weights(self):
         # sends the data to the model and update the matrix every few seconds
         raise NotImplementedError()
 

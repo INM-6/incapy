@@ -26,5 +26,5 @@ class IModel(ABC):
 
     # might not be needed
     @abstractmethod
-    def set_ids(self, data):
+    def set_vertex_ids(self, data):
         raise NotImplementedError()
