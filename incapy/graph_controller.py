@@ -5,11 +5,11 @@ import time
 
 class GraphAlgorithm(IController):
 
-    def __init__(self, model):
+    def __init__(self, model, filename):
         super().__init__(model)
         self.model = model
         self.loader = DataLoader()
-        self.loader.load_data('../../data/corr_data.h5')
+        self.loader.load_data(filename)
         self.populate_model()
         self.current_frame = 1
         self.update_weights()

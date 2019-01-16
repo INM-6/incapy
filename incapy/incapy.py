@@ -5,10 +5,10 @@ from .jupyter_view import JupyterView
 
 class Incapy():
 
-    def __init__(self, model_class=GraphModel, view_class=JupyterView, controller_class=GraphAlgorithm):
+    def __init__(self, filename='../../data/corr_data.h5', model_class=GraphModel, view_class=JupyterView, controller_class=GraphAlgorithm):
         self.model = model_class()
         self.view = view_class(self.model)
-        self.controller = controller_class(self.model)
+        self.controller = controller_class(self.model, filename)
 
     def show(self):
         return self.view.show()
