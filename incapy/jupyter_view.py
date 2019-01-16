@@ -19,7 +19,9 @@ class JupyterView(IView):
         return self.dynamic_map
 
     def update(self, data):
-        self.pipe.send(data)
+        # TODO see if library function in holoviews is available with option to display edges or not
+        new_data = (([], []), data[1])
+        self.pipe.send(new_data)
         # print(self.dynamic_map.streams)
 
     def _register(self, model):
@@ -27,6 +29,3 @@ class JupyterView(IView):
 
     def _unregister(self, model):
         model.remove_listener(self)
-
-
-

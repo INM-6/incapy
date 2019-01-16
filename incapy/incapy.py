@@ -27,5 +27,3 @@ class Incapy():
 
     def load_data(self):
         raise NotImplementedError()
-
-

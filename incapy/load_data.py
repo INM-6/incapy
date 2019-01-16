@@ -48,4 +48,3 @@ def load_data_random(model, num_nodes):
     model.set_vertex_ids(node_indices)
     positions = np.random.rand(2, num_nodes)
     model.set_positions(positions)
-
