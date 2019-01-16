@@ -37,6 +37,7 @@ class DataLoader:
             # Edge Attributes (time variant)
             self.x_corr = np.array(file['timeVariantData/edgeAttributes/CrossCorrelations']).T
 
+
             # Vertex Attributes
             self.positions = np.array(file['staticData/vertexAttributes/position'])
 

@@ -12,7 +12,7 @@ class JupyterView(IView):
         self.pipe = Pipe(data=[], memoize=True)
         self.dynamic_map = hv.DynamicMap(hv.Graph, streams=[self.pipe])
         # TODO change padding size accordingly
-        self.dynamic_map.opts(xaxis=None, yaxis=None, padding=0.1)
+        self.dynamic_map.opts(padding=0.1)# xaxis=None, yaxis=None,
         self._register(model)
 
     def show(self):
@@ -20,7 +20,14 @@ class JupyterView(IView):
 
     def update(self, data):
         # TODO see if library function in holoviews is available with option to display edges or not
-        new_data = (([], []), data[1])
+        try:
+            pos_x = (data[1][0].T)[0]
+            pos_y = (data[1][0].T)[1]
+        except IndexError:
+            pos_x = []
+            pos_y = []
+
+        new_data = (([], []), (pos_x,pos_y,data[1][1]))
         self.pipe.send(new_data)
         # print(self.dynamic_map.streams)
 
