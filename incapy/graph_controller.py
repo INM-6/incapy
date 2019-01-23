@@ -18,8 +18,9 @@ class GraphAlgorithm(IController):
         self.update_weights()
         self.natural_spring_length = None
         self.graph_center = None
-        self.repulsive_const = 0.000001
-        self.anim_speed_const = 0.000001
+        self.repulsive_const = 1
+        self.anim_speed_const = 1
+        self.max_step_size = 0.5
 
     def populate_model(self):
         # set attributes of the graph
@@ -101,6 +102,9 @@ class GraphAlgorithm(IController):
                     # TODO: only calculate with neighbours (maybe need own for loop)
                     spring_force = -diff_length**2/self.natural_spring_length
                     displacement += diff * spring_force
+            displacement_length = self._vector_length(displacement)
+            displacement = displacement / displacement_length
+            displacement *= min(displacement_length, self.max_step_size)
             # TODO: Inform model of change
             self.model.vertex_pos[source] += displacement
         # Force to center of graph
