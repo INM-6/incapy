@@ -36,3 +36,22 @@ class JupyterView(IView):
 
     def _unregister(self, model):
         model.remove_listener(self)
+
+
+class NoView(IView):
+
+    def __init__(self, model):
+        super().__init__(model)
+        self._register(model)
+
+    def show(self):
+        pass
+
+    def update(self, data):
+        pass
+
+    def _register(self, model):
+        model.add_listener(self)
+
+    def _unregister(self, model):
+        model.remove_listener(self)
