@@ -14,41 +14,48 @@ class GraphAlgorithm(IController):
         self.loader.load_data(filename)
         self.calculate_weights()
         self.populate_model()
-        self.current_frame = 1
+        self.current_frame = 0
         self.update_weights()
         self.natural_spring_length = None
         self.graph_center = None
         self.repulsive_const = 0.115
         self.anim_speed_const = 1
-        self.max_step_size = 0.5
+        self.max_step_size = 0.01
 
     def populate_model(self):
         # set attributes of the graph
         # TODO graph needs to know weights(cross_correlation) and edge_ids
-        # self.model.set_vertex_ids(self.loader.vertex_ids)
-        # self.model.set_positions(self.loader.positions[:, 1:3].T)
-        # self.model.set_edges(self.loader.edge_ids)
+        self.model.set_vertex_ids(self.loader.vertex_ids)
+        self.model.set_positions(self.loader.positions[:, 1:3].T)
+        self.model.set_edges(self.loader.edge_ids)
         # load_data_debug(self.model)
 
     def calculate_weights(self):
         # calculate actual weights from x_corr
         # TODO Use Sigmoid function
-        self.loader.weights = np.abs(self.loader.x_corr - 1)
+        self.loader.weights = np.abs(self.loader.x_corr[1:] - 1)
 
     def update_weights(self):
         # sends the data to the model and update the matrix every few seconds
-        # self.model.set_weights(self.loader.weights[self.current_frame])
-        # self.current_frame += 1
-        self.model.set_weights([1, 0.5, 0])
+        self.model.set_weights(self.loader.weights[self.current_frame])
+        self.current_frame += 1
+        # self.model.set_weights([1, 0.5, 0])
 
     def start_iteration(self):
+        count = 0
         self.init_algorithm()
         # TODO: Maybe catch Keyboard interrupt to output position
         while True:
-            time.sleep(1)
+            if not count%100:
+                print(count)
+                if not count % 100:
+                    self.update_weights()
+            count += 1
+            # time.sleep(1)
             self.do_step()
             try:
-                self.update_weights()
+                pass
+                # self.update_weights()
             except IndexError:
                 break
             # TODO introduce error handling after last iteration of correlations
@@ -103,13 +110,15 @@ class GraphAlgorithm(IController):
                     edge_id = (len(self.model.vertex_indices)+1)*edgesource+edgetarget
                     edge_index = self.model.edge_indices[edge_id]
                     weight = self.model.edge_weights[edge_index]
-                    print(diff, weight)
+                    # print(diff, weight)
 
                     repulsive_force = self.repulsive_const * self.natural_spring_length * self.natural_spring_length
-                    displacement += diff * repulsive_force * weight
+                    # Repulsive force moves them away from each other
+                    displacement -= diff * repulsive_force * weight
                     # calculate attractive forces
                     # TODO: only calculate with neighbours (maybe need own for loop)
-                    spring_force = -diff_length**2/self.natural_spring_length
+                    spring_force = diff_length**2/self.natural_spring_length
+                    # Spring force moves them towards each other
                     displacement += diff * spring_force
             displacement_length = self._vector_length(displacement)
             displacement = displacement / displacement_length
