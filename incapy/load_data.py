@@ -37,7 +37,6 @@ class DataLoader:
             # Edge Attributes (time variant)
             self.x_corr = np.array(file['timeVariantData/edgeAttributes/CrossCorrelations']).T
 
-
             # Vertex Attributes
             self.positions = np.array(file['staticData/vertexAttributes/position'])
 
@@ -49,3 +48,11 @@ def load_data_random(model, num_nodes):
     model.set_vertex_ids(node_indices)
     positions = np.random.rand(2, num_nodes)
     model.set_positions(positions)
+
+def load_data_debug(model):
+    # Need to allow not directly successing series
+    vertex_indices = np.array([0,1,2])
+    model.set_vertex_ids(vertex_indices)
+    positions = np.array([[0, 4, 4], [0, 3, 0]], dtype='float64')
+    model.set_positions(positions)
+    model.set_edges([[0, 0, 1], [1, 2, 2]])

@@ -1,4 +1,4 @@
-from .load_data import DataLoader
+from .load_data import DataLoader, load_data_debug
 from .icontroller import IController
 import time
 import math
@@ -14,13 +14,13 @@ class GraphAlgorithm(IController):
         self.loader.load_data(filename)
         self.calculate_weights()
         self.populate_model()
-        self.current_frame = 1
+        self.current_frame = 0
         self.update_weights()
         self.natural_spring_length = None
         self.graph_center = None
-        self.repulsive_const = 1
+        self.repulsive_const = 0.115
         self.anim_speed_const = 1
-        self.max_step_size = 0.5
+        self.max_step_size = 0.01
 
     def populate_model(self):
         # set attributes of the graph
@@ -28,25 +28,34 @@ class GraphAlgorithm(IController):
         self.model.set_vertex_ids(self.loader.vertex_ids)
         self.model.set_positions(self.loader.positions[:, 1:3].T)
         self.model.set_edges(self.loader.edge_ids)
+        # load_data_debug(self.model)
 
     def calculate_weights(self):
         # calculate actual weights from x_corr
         # TODO Use Sigmoid function
-        self.loader.weights = np.abs(self.loader.x_corr - 1)
+        self.loader.weights = np.abs(self.loader.x_corr[1:] - 1)
 
     def update_weights(self):
         # sends the data to the model and update the matrix every few seconds
         self.model.set_weights(self.loader.weights[self.current_frame])
         self.current_frame += 1
+        # self.model.set_weights([1, 0.5, 0])
 
     def start_iteration(self):
+        count = 0
         self.init_algorithm()
         # TODO: Maybe catch Keyboard interrupt to output position
         while True:
-            time.sleep(1)
+            if not count%100:
+                print(count)
+                if not count % 100:
+                    self.update_weights()
+            count += 1
+            # time.sleep(1)
             self.do_step()
             try:
-                self.update_weights()
+                pass
+                # self.update_weights()
             except IndexError:
                 break
             # TODO introduce error handling after last iteration of correlations
@@ -82,37 +91,46 @@ class GraphAlgorithm(IController):
         self.graph_center = (5, 5)
 
     def do_step(self):
+        next_positions = self.model.vertex_pos
         for source in self.model.vertex_indices:
             displacement = np.array((0, 0), dtype='float64')
             for target in self.model.vertex_indices:
-                if source < target:
+                # Need to check every edge for every single node (even if 1-2 was already used for 1, it needs to be used for 2 as well!!!!)
+                if source != target:
+                    # Edges are saved such that source < target => Index in different way
+                    edgesource = min(source, target)
+                    edgetarget = max(source, target)
                     source_pos = self.model.vertex_pos[source]
                     target_pos = self.model.vertex_pos[target]
                     diff = target_pos - source_pos
                     diff_length = self._vector_length(diff)
                     diff = diff / diff_length
                     # Calculate the repulsive force
-                    tmp = self.model.edge_indices[(len(self.model.vertex_indices)+1)*source+target]
-                    weight = self.model.edge_weights[tmp]
-                    print(diff,weight)
+                    # Unique id of edge
+                    edge_id = (len(self.model.vertex_indices)+1)*edgesource+edgetarget
+                    edge_index = self.model.edge_indices[edge_id]
+                    weight = self.model.edge_weights[edge_index]
+                    # print(diff, weight)
 
                     repulsive_force = self.repulsive_const * self.natural_spring_length * self.natural_spring_length
-                    displacement += diff * repulsive_force * weight
+                    # Repulsive force moves them away from each other
+                    displacement -= diff * repulsive_force * weight
                     # calculate attractive forces
                     # TODO: only calculate with neighbours (maybe need own for loop)
-                    spring_force = -diff_length**2/self.natural_spring_length
+                    spring_force = diff_length**2/self.natural_spring_length
+                    # Spring force moves them towards each other
                     displacement += diff * spring_force
             displacement_length = self._vector_length(displacement)
             displacement = displacement / displacement_length
             displacement *= min(displacement_length, self.max_step_size)
             # TODO: Inform model of change
-            self.model.vertex_pos[source] += displacement
+            next_positions[source] += displacement
         # Force to center of graph
         diff_to_center = np.array((0, 0), dtype='float64')
         for source in self.model.vertex_indices:
             diff_to_center += self.model.vertex_pos[source]
         diff_to_center = diff_to_center/len(self.model.vertex_indices)-self.graph_center
         for source in self.model.vertex_indices:
-            self.model.vertex_pos[source]-= diff_to_center * self.anim_speed_const
+            next_positions[source] -= diff_to_center * self.anim_speed_const
         # TODO: DO NOT ACCESS PRIVATE MEMBERS IN OTHER CLASSES
-        self.model._update_view()
+        self.model.set_positions(next_positions.T)
