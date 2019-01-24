@@ -18,7 +18,7 @@ class GraphModel(IModel):
 
     def _update_view(self):
         for l in self.listeners:
-            print(id(self.edge_source))
+            #print(id(self.edge_source))
             l.update(((self.edge_source, self.edge_target), (np.array(self.vertex_pos), self.vertex_indices)))
 
     def set_positions(self, data):
@@ -30,8 +30,15 @@ class GraphModel(IModel):
     def set_weights(self, data):
         # TODO: Check data input
 #<<<<<<< Updated upstream
-        self.edge_weights = data
-        print(self.edge_weights)
+        # NEED INDICES BEFORE AND EDGES
+        self.edge_weights = np.ndarray((len(self.vertex_indices), len(self.vertex_indices)), dtype='float64')
+        for i in range(len(self.vertex_indices)):
+            for j in range(len(self.vertex_indices)):
+                source = min(i, j)
+                target = max(i, j)
+                edge_ind = self.edge_indices[source*(len(self.vertex_indices)+1) + target]
+                self.edge_weights[i][j] = data[edge_ind]
+        #print(self.edge_weights)
 # =======
 #         # TODO set_ids must be called before calling set_weights
 #         counter = 0
