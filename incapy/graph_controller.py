@@ -18,7 +18,7 @@ class GraphAlgorithm(IController):
         self.update_weights()
         self.natural_spring_length = None
         self.graph_center = None
-        self.repulsive_const = 0.115
+        self.repulsive_const = 0.2
         self.anim_speed_const = 1
         self.max_step_size = 0.01
 
@@ -28,7 +28,7 @@ class GraphAlgorithm(IController):
         self.model.set_vertex_ids(self.loader.vertex_ids)
         self.model.set_positions(self.loader.positions[:, 1:3].T)
         self.model.set_edges(self.loader.edge_ids)
-        # load_data_debug(self.model)
+        #load_data_debug(self.model)
 
     def calculate_weights(self):
         # calculate actual weights from x_corr
@@ -39,7 +39,7 @@ class GraphAlgorithm(IController):
         # sends the data to the model and update the matrix every few seconds
         self.model.set_weights(self.loader.weights[self.current_frame])
         self.current_frame += 1
-        # self.model.set_weights([1, 0.5, 0])
+        #self.model.set_weights([1, 1, 0.5, 1, 0, 1])
 
     def start_iteration(self):
         count = 0
@@ -52,7 +52,7 @@ class GraphAlgorithm(IController):
                 if not count % 100:
                     self.update_weights()
             count += 1
-            # time.sleep(1)
+            time.sleep(0.02)
             self.do_step()
             try:
                 pass
@@ -97,15 +97,16 @@ class GraphAlgorithm(IController):
         # TODO: Check if copy is needed???
         # next_positions = self.model.vertex_pos.copy()
         source_pos = self.model.vertex_pos[:, np.newaxis, :]
-        print(source_pos.shape)
+        #print(source_pos.shape)
         target_pos = self.model.vertex_pos[np.newaxis, :, :]
-        diff = target_pos - source_pos
-        print(diff.shape)
+        diff = source_pos - target_pos
+        #print(diff.shape)
         diff_length = diff[:, :, :]
         diff_length = diff_length**2
         diff_length = np.sqrt(np.sum(diff_length, axis=-1))
         diff_length[diff_length == 0] = 1
         diff = diff/diff_length[:, :, np.newaxis]
+        #print('diff', diff)
         displacement = diff*self.repulsive_const*(self.natural_spring_length**2)
         displacement *= self.model.edge_weights[:, :, np.newaxis]
         # TODO: Add weights, attraction
@@ -113,12 +114,12 @@ class GraphAlgorithm(IController):
         displacement -= diff*spring_force[:, :, np.newaxis]
 
         displacement = np.sum(diff, axis=-2)
-
+        #print('displacement', displacement)
         # Make sure length of displacement fits
         displacement_length = displacement**2
         displacement_length = np.sqrt(np.sum(displacement_length, axis=-1))
         displacement = displacement/displacement_length[:, np.newaxis]
-        displacement *= np.minimum(displacement, np.full_like(displacement, self.max_step_size))
+        displacement *= np.minimum(displacement_length[:, np.newaxis], np.full_like(displacement_length[:, np.newaxis], self.max_step_size))
 
         self.model.vertex_pos+=displacement
 
@@ -128,6 +129,8 @@ class GraphAlgorithm(IController):
         diff_to_center -= self.graph_center
 
         self.model.vertex_pos = self.model.vertex_pos - diff_to_center[np.newaxis, :] * self.anim_speed_const
+
+        #print(self.model.vertex_pos)
 
         # for source in self.model.vertex_indices:
         #     source_pos =  np.full(())

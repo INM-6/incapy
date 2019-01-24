@@ -29,6 +29,7 @@ class GraphModel(IModel):
 
     def set_weights(self, data):
         # TODO: Check data input
+        # TODO: Check when missing an index!!!
 #<<<<<<< Updated upstream
         # NEED INDICES BEFORE AND EDGES
         self.edge_weights = np.ndarray((len(self.vertex_indices), len(self.vertex_indices)), dtype='float64')
@@ -38,6 +39,9 @@ class GraphModel(IModel):
                 target = max(i, j)
                 edge_ind = self.edge_indices[source*(len(self.vertex_indices)+1) + target]
                 self.edge_weights[i][j] = data[edge_ind]
+        #for i in range(len(self.vertex_indices)):
+        #    for j in range(len(self.vertex_indices)):
+        #        assert self.edge_weights[i][j] == self.edge_weights[j][i]
         #print(self.edge_weights)
 # =======
 #         # TODO set_ids must be called before calling set_weights

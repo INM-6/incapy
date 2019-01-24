@@ -55,4 +55,4 @@ def load_data_debug(model):
     model.set_vertex_ids(vertex_indices)
     positions = np.array([[0, 4, 4], [0, 3, 0]], dtype='float64')
     model.set_positions(positions)
-    model.set_edges([[0, 0, 1], [1, 2, 2]])
+    model.set_edges([[0, 0, 0, 1, 1, 2], [0, 1, 2, 1, 2, 2]])
