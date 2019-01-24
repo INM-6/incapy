@@ -90,8 +90,10 @@ class GraphAlgorithm(IController):
         # TODO Calculate graph center
         self.graph_center = (5, 5)
 
+    # Numpy mashgrid
     def do_step(self):
-        next_positions = self.model.vertex_pos
+        # TODO: Check if copy is needed???
+        # next_positions = self.model.vertex_pos.copy()
         for source in self.model.vertex_indices:
             displacement = np.array((0, 0), dtype='float64')
             for target in self.model.vertex_indices:
@@ -120,17 +122,19 @@ class GraphAlgorithm(IController):
                     spring_force = diff_length**2/self.natural_spring_length
                     # Spring force moves them towards each other
                     displacement += diff * spring_force
+            # Force all vertices towards center
             displacement_length = self._vector_length(displacement)
             displacement = displacement / displacement_length
             displacement *= min(displacement_length, self.max_step_size)
             # TODO: Inform model of change
-            next_positions[source] += displacement
+            self.model.vertex_pos[source] += displacement
         # Force to center of graph
         diff_to_center = np.array((0, 0), dtype='float64')
         for source in self.model.vertex_indices:
             diff_to_center += self.model.vertex_pos[source]
         diff_to_center = diff_to_center/len(self.model.vertex_indices)-self.graph_center
         for source in self.model.vertex_indices:
-            next_positions[source] -= diff_to_center * self.anim_speed_const
+            self.model.vertex_pos[source] -= diff_to_center * self.anim_speed_const
         # TODO: DO NOT ACCESS PRIVATE MEMBERS IN OTHER CLASSES
-        self.model.set_positions(next_positions.T)
+        self.model._update_view()
+        #self.model.set_positions(next_positions.T)

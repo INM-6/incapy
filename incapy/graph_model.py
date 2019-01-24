@@ -18,6 +18,7 @@ class GraphModel(IModel):
 
     def _update_view(self):
         for l in self.listeners:
+            print(id(self.edge_source))
             l.update(((self.edge_source, self.edge_target), (np.array(self.vertex_pos), self.vertex_indices)))
 
     def set_positions(self, data):

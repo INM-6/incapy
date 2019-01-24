@@ -48,6 +48,7 @@ class NoView(IView):
         pass
 
     def update(self, data):
+        print(id(data[0][0]))
         pass
 
     def _register(self, model):
