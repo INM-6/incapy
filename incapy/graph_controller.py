@@ -18,9 +18,9 @@ class GraphAlgorithm(IController):
         self.update_weights()
         self.natural_spring_length = None
         self.graph_center = None
-        self.repulsive_const = 0.2
+        self.repulsive_const = 1  # Daniel: 1
         self.anim_speed_const = 1
-        self.max_step_size = 0.01
+        self.max_step_size = 0.9*60/5000   # Daniel: 0.9, is however changed every step
 
     def populate_model(self):
         # set attributes of the graph
@@ -48,8 +48,9 @@ class GraphAlgorithm(IController):
         # TODO: Maybe catch Keyboard interrupt to output position
         while True:
             if not count%100:
-                #print(count)
-                if not count % 100:
+                print(count)
+                if not count % 300:
+                    print("Weights updated")
                     self.update_weights()
             count += 1
             time.sleep(0.02)
@@ -95,85 +96,71 @@ class GraphAlgorithm(IController):
     # Broadcasting
     def do_step(self):
         # TODO: Check if copy is needed???
-        # next_positions = self.model.vertex_pos.copy()
+
+        # Get all positions twice: for target and source; reshape so they can be broadcast together by numpy
         source_pos = self.model.vertex_pos[:, np.newaxis, :]
-        #print(source_pos.shape)
         target_pos = self.model.vertex_pos[np.newaxis, :, :]
+        # Creates matrix NxNx2 where n is number of vertices; diff[0][1] is difference vector between vertices 0 and 1
         diff = source_pos - target_pos
-        #print(diff.shape)
+        # Create copy in order to calculate lengths from that
+        # Copy will be heavily changed
         diff_length = diff[:, :, :]
+
+        # Length of vector is sqrt of sum of squares of coordinates
+        # square
         diff_length = diff_length**2
+        # sum and sqrt
         diff_length = np.sqrt(np.sum(diff_length, axis=-1))
+        # Avoid division of 0/0
         diff_length[diff_length == 0] = 1
+        # Normalize all difference vectors
         diff = diff/diff_length[:, :, np.newaxis]
-        #print('diff', diff)
-        displacement = diff*self.repulsive_const*(self.natural_spring_length**2)
+
+        # Calculate repulsive forces
+        # Repulsion vector as a function of difference vector and edge weights
+        displacement = diff*self.repulsive_const*(self.natural_spring_length**2)/diff_length[:, :, np.newaxis]
         displacement *= self.model.edge_weights[:, :, np.newaxis]
-        # TODO: Add weights, attraction
+
+        # Calculate attractive forces
+        # Attraction vector as function of distance
+        # TODO: Only calculate if the vertices are indeed adjacent,
+        # TODO: currently always the case, else need to set weight 0 or something
         spring_force = diff_length ** 2 / self.natural_spring_length
         displacement -= diff*spring_force[:, :, np.newaxis]
 
-        displacement = np.sum(diff, axis=-2)
-        #print('displacement', displacement)
+        # Displacement was calculated for each pair of vectors
+        # Now need to sum over all target vertices for all source vertices
+        displacement = np.sum(displacement, axis=-2)
+
         # Make sure length of displacement fits
+        # Own matrix for length calculations analogous to diff
         displacement_length = displacement**2
         displacement_length = np.sqrt(np.sum(displacement_length, axis=-1))
+
+        # Normalize displacements
         displacement = displacement/displacement_length[:, np.newaxis]
-        displacement *= np.minimum(displacement_length[:, np.newaxis], np.full_like(displacement_length[:, np.newaxis], self.max_step_size))
 
-        self.model.vertex_pos+=displacement
+        # Displacements are capped at certain length
+        # If their length is less than max_step_size, nothing changes, otherwise their length will be max_step_size
+        displacement *= np.minimum(displacement_length[:, np.newaxis],
+                                   np.full_like(displacement_length[:, np.newaxis], self.max_step_size))
 
+        # Now update model with displacment vectors per source vertex
+        self.model.vertex_pos += displacement
+
+        # Force everything around a common center
+        # Sum all positions
         # Axis 0 or 1 indexed? FIRST AXIS!!!
         diff_to_center = np.sum(self.model.vertex_pos, axis=-2)
+        # Average of all positions is 'middle' of graph
         diff_to_center /= len(self.model.vertex_indices)
+        # Difference of middle of graph to predefined center
         diff_to_center -= self.graph_center
 
+        # Move all towards center such that 'middle' of graph eventually becomes equal to center
         self.model.vertex_pos = self.model.vertex_pos - diff_to_center[np.newaxis, :] * self.anim_speed_const
 
-        #print(self.model.vertex_pos)
-
-        # for source in self.model.vertex_indices:
-        #     source_pos =  np.full(())
-        #     displacement = np.array((0, 0), dtype='float64')
-        #     for target in self.model.vertex_indices:
-        #         # Need to check every edge for every single node (even if 1-2 was already used for 1, it needs to be used for 2 as well!!!!)
-        #         if source != target:
-        #             # Edges are saved such that source < target => Index in different way
-        #             edgesource = min(source, target)
-        #             edgetarget = max(source, target)
-        #             source_pos = self.model.vertex_pos[source]
-        #             target_pos = self.model.vertex_pos[target]
-        #             diff = target_pos - source_pos
-        #             diff_length = self._vector_length(diff)
-        #             diff = diff / diff_length
-        #             # Calculate the repulsive force
-        #             # Unique id of edge
-        #             edge_id = (len(self.model.vertex_indices)+1)*edgesource+edgetarget
-        #             edge_index = self.model.edge_indices[edge_id]
-        #             weight = self.model.edge_weights[edge_index]
-        #             # print(diff, weight)
-        #
-        #             repulsive_force = self.repulsive_const * self.natural_spring_length * self.natural_spring_length
-        #             # Repulsive force moves them away from each other
-        #             displacement -= diff * repulsive_force * weight
-        #             # calculate attractive forces
-        #             # TODO: only calculate with neighbours (maybe need own for loop)
-        #             spring_force = diff_length**2/self.natural_spring_length
-        #             # Spring force moves them towards each other
-        #             displacement += diff * spring_force
-            # Force all vertices towards center
-        #     displacement_length = self._vector_length(displacement)
-        #     displacement = displacement / displacement_length
-        #     displacement *= min(displacement_length, self.max_step_size)
-        #     # TODO: Inform model of change
-        #     self.model.vertex_pos[source] += displacement
-        # # Force to center of graph
-        # diff_to_center = np.array((0, 0), dtype='float64')
-        # for source in self.model.vertex_indices:
-        #     diff_to_center += self.model.vertex_pos[source]
-        # diff_to_center = diff_to_center/len(self.model.vertex_indices)-self.graph_center
-        # for source in self.model.vertex_indices:
-        #     self.model.vertex_pos[source] -= diff_to_center * self.anim_speed_const
+        # # TODO: Inform model of change
         # # TODO: DO NOT ACCESS PRIVATE MEMBERS IN OTHER CLASSES
         self.model._update_view()
-        #self.model.set_positions(next_positions.T)
+        # self.model.set_positions(next_positions.T)

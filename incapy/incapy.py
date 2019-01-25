@@ -1,7 +1,6 @@
 from .graph_controller import GraphAlgorithm
 from .graph_model import GraphModel
 from .jupyter_view import JupyterView
-from .jupyter_view import NoView
 
 
 class Incapy():

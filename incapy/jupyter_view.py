@@ -12,7 +12,7 @@ class JupyterView(IView):
         self.pipe = Pipe(data=[], memoize=True)
         self.dynamic_map = hv.DynamicMap(hv.Graph, streams=[self.pipe])
         # TODO change padding size accordingly
-        self.dynamic_map.opts(padding=0.1)# xaxis=None, yaxis=None,
+        self.dynamic_map.opts(padding=0.5)# xaxis=None, yaxis=None,
         self._register(model)
 
     def show(self):
