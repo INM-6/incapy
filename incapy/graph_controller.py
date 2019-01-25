@@ -20,6 +20,7 @@ class GraphAlgorithm(IController):
         self.graph_center = None
         self.repulsive_const = 1  # Daniel: 1
         self.anim_speed_const = 1
+        # TODO: Needs to depend on anim_speed_const (and current frame rate maybe???)
         self.max_step_size = 0.9*60/5000   # Daniel: 0.9, is however changed every step
 
     def populate_model(self):
