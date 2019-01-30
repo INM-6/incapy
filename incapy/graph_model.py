@@ -14,6 +14,8 @@ class GraphModel(IModel):
         # Mapping from internal array indices to external IDs
         self.vertex_id_to_index = {}
         self.vertex_index_to_id = {}
+        self.animation_speed = 1
+        self.time_to_update_weights = 5
 
     def add_listener(self, view):
         self.listeners.append(view)
@@ -63,3 +65,10 @@ class GraphModel(IModel):
 
     def get_weights(self):
         return self.edge_weights
+
+    def set_time_weight_update(self, time_to_update_weights):
+        print(time_to_update_weights)
+        self.time_to_update_weights = time_to_update_weights
+
+    def set_animation_speed(self, animation_speed):
+        self.animation_speed = animation_speed

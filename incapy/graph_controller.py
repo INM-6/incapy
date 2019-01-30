@@ -48,11 +48,14 @@ class GraphAlgorithm(IController):
         self.init_algorithm()
         # TODO: Maybe catch Keyboard interrupt to output position
         while True:
-            if not count%100:
-                print(count)
-                if not count % 300:
-                    print("Weights updated")
-                    self.update_weights()
+
+            # TODO implement timer
+            # TODO time step 0 not implemented yet (should stop)
+            if not count % (20*self.model.time_to_update_weights):
+                print(self.model.time_to_update_weights)
+                print("Weights updated")
+                self.update_weights()
+                count = 1
             count += 1
             time.sleep(0.02)
             self.do_step()
