@@ -5,86 +5,61 @@ class GraphModel(IModel):
 
     def __init__(self):
         super().__init__()
-        self.edge_source = []
-        self.edge_target = []
+        self.edges = np.ndarray((0, 2))
+        # mapping from vertex_indices to matrix_indices!! (e.g. missing node)
         self.edge_weights = []
-        self.vertex_indices = []
+        self.vertex_ids = []
         self.vertex_pos = []
         self.listeners = []
-        self.edge_indices = {}
+        # Mapping from internal array indices to external IDs
+        self.vertex_id_to_index = {}
+        self.vertex_index_to_id = {}
 
     def add_listener(self, view):
         self.listeners.append(view)
 
     def _update_view(self):
         for l in self.listeners:
-            #print(id(self.edge_source))
-            l.update(((self.edge_source, self.edge_target), (np.array(self.vertex_pos), self.vertex_indices)))
+            l.update(((self.edges.T[0], self.edges.T[1]), (np.array(self.vertex_pos), self.vertex_ids)))
 
-    def set_positions(self, data):
-        # TODO: If not numpy array need to loop
-        # data = data.T
-        self.vertex_pos = data.T
+    def set_positions(self, positions):
+        """
+
+        :param positions: Numpy 2D array, shape (X, 2)
+            First dimension describes different vertices, second dimension x and y coordinates
+        :return:
+        """
+        # TODO: If not numpy array need to loop to set
+        self.vertex_pos = positions
         self._update_view()
 
-    def set_weights(self, data):
-        # TODO: Check data input
-        # TODO: Check when missing an index!!!
-#<<<<<<< Updated upstream
-        # NEED INDICES BEFORE AND EDGES
-        self.edge_weights = np.ndarray((len(self.vertex_indices), len(self.vertex_indices)), dtype='float64')
-        for i in range(len(self.vertex_indices)):
-            for j in range(len(self.vertex_indices)):
-                source = min(i, j)
-                target = max(i, j)
-                edge_ind = self.edge_indices[source*(len(self.vertex_indices)+1) + target]
-                self.edge_weights[i][j] = data[edge_ind]
-        #for i in range(len(self.vertex_indices)):
-        #    for j in range(len(self.vertex_indices)):
-        #        assert self.edge_weights[i][j] == self.edge_weights[j][i]
-        #print(self.edge_weights)
-# =======
-#         # TODO set_ids must be called before calling set_weights
-#         counter = 0
-#         self.edgeWeights = np.ndarray((len(self.node_indices)*(len(self.node_indices)+1)//2,))
-#         # TODO: Check if numpy can do this better
-#         for i, source in enumerate(data):
-#             for j, target in enumerate(source):
-#                 self.edgeWeights[counter] = data[i, j]
-#                 counter += 1
-# >>>>>>> Stashed changes
-        self._update_view()
+    def set_weights(self, weights):
+        """
 
+        :param weights: Numpy 2D array
+            2D weight matrix
+        :return:
+        """
+        self.edge_weights = weights
+        self._update_view()
 
     # might not be needed
-    def set_vertex_ids(self, data):
-        # TODO: Check data input
-#<<<<<<< Updated upstream
-        self.vertex_indices = data
-# =======
-#         counter = 0
-#         self.node_indices = data
-#         print(self.node_indices)
-#         self.edgeSource = np.ndarray((len(self.node_indices)*(len(self.node_indices)+1)//2,))
-#         self.edgeTarget = np.ndarray((len(self.node_indices)*(len(self.node_indices)+1)//2,))
-#         # TODO: Check if needs to be done together with weights
-#         # TODO: Check if numpy can do this better
-#         for source in data:
-#             for target in data:
-#                 self.edgeSource[counter]=source
-#                 self.edgeTarget[counter]=target
-#                 counter += 1
-# >>>>>>> Stashed changes
+    def set_vertex_ids(self, vertex_ids):
+        """
+        Sets the IDs for all vertices
+        :param vertex_ids: List or numpy 1D array
+            One-dimensional list of IDs of vertices (e.g. electrode number)
+        :return: void
+        """
+        self.vertex_ids = vertex_ids
+        self.vertex_id_to_index = {id: index for id, index in enumerate(self.vertex_ids)}
+        self.vertex_index_to_id = {index: id for id, index in enumerate(self.vertex_ids)}
         self._update_view()
 
-    def set_edges(self, data):
+    def set_edges(self, edges):
         # TODO: Check if needs to be done together with weights
-        self.edge_source = data[0]
-        self.edge_target = data[1]
-        # TODO: better way to access the edges when source and target are known? maybe use matrix (problem missing vertex)
-        # TODO: requires set_vertex_ids to be called before, either make sure this happens or reorganise
-        self.edge_indices = {data[0][i]*(len(self.vertex_indices)+1) + data[1][i]: i for i in range(len(data[0]))}
-
+        self.edges = edges
+        self._update_view()
 
     def get_weights(self):
         return self.edge_weights

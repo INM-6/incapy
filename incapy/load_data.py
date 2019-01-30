@@ -11,6 +11,7 @@ class DataLoader:
         self.vertex_ids = None
         self.edge_ids = None
         self.frame_durations = None
+        self.weights = None
 
     def load_data(self, filename):
         # load the data from the hdf5 files (2-dimensional weighted matrix)
@@ -25,7 +26,7 @@ class DataLoader:
 
             # Read edge IDs, i.e. an array consisting of pairs of (source, target) that represent edges
             # TODO currently not used
-            self.edge_ids = np.array(file['edgeIDs']).T
+            self.edge_ids = np.array(file['edgeIDs'])
 
             # defines start and stop timestamp for each set of cross-correlations
             # TODO currently not used
@@ -37,6 +38,19 @@ class DataLoader:
             # Edge Attributes (time variant)
             self.x_corr = np.array(file['timeVariantData/edgeAttributes/CrossCorrelations']).T
 
+            # TODO: Check when missing an index!!!
+            # NEED INDICES BEFORE AND EDGES
+            num_vert = len(self.vertex_ids)
+            self.weights = np.zeros((self.x_corr.shape[0]-1, num_vert, num_vert), dtype='float64')
+            upper = np.triu_indices(num_vert)
+            # TODO: Optimize using numpy, could remove for loop
+            for timestamp in range(self.x_corr.shape[0]-1):
+                # Set weights into upper triangular matrix
+                self.weights[timestamp][upper] = self.x_corr[1:][timestamp]
+                self.weights[timestamp] += self.weights[timestamp].T
+                # Numpy magic to subtract added values on diagonal; should not make a difference
+                self.weights[timestamp] -= np.diag(np.diag(self.weights[timestamp]))
+                self.weights[timestamp] = -1 * (self.weights[timestamp] - 1)
             # Vertex Attributes
             self.positions = np.array(file['staticData/vertexAttributes/position'])
 

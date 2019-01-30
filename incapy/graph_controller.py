@@ -18,23 +18,23 @@ class GraphAlgorithm(IController):
         self.update_weights()
         self.natural_spring_length = None
         self.graph_center = None
+        # TODO: Should be changeable by user
         self.repulsive_const = 1  # Daniel: 1
         self.anim_speed_const = 1
         # TODO: Needs to depend on anim_speed_const (and current frame rate maybe???)
-        self.max_step_size = 0.9*60/5000   # Daniel: 0.9, is however changed every step
+        self.max_step_size = 3*60/5000   # Daniel: 0.9, is however changed every step
 
     def populate_model(self):
         # set attributes of the graph
         # TODO graph needs to know weights(cross_correlation) and edge_ids
-        self.model.set_vertex_ids(self.loader.vertex_ids)
-        self.model.set_positions(self.loader.positions[:, 1:3].T)
         self.model.set_edges(self.loader.edge_ids)
-        #load_data_debug(self.model)
+        self.model.set_vertex_ids(self.loader.vertex_ids)
+        self.model.set_positions(self.loader.positions[:, 1:3])
 
     def calculate_weights(self):
         # calculate actual weights from x_corr
         # TODO Use Sigmoid function
-        self.loader.weights = np.abs(self.loader.x_corr[1:] - 1)
+        pass
 
     def update_weights(self):
         # sends the data to the model and update the matrix every few seconds
@@ -82,11 +82,11 @@ class GraphAlgorithm(IController):
     def calculate_spring_length(self):
         # Calculate sum of edge lengths
         sum_edge_lengths = 0
-        for nodes in np.vstack((self.model.edge_source,self.model.edge_target)).T:
+        for nodes in self.model.edges:
             vector_0 = self.model.vertex_pos[nodes[0]]
             vector_1 = self.model.vertex_pos[nodes[1]]
             sum_edge_lengths += self._vector_length(vector_0-vector_1)
-        self.natural_spring_length = 1.5 * sum_edge_lengths/len(self.model.edge_source)
+        self.natural_spring_length = 1.5 * sum_edge_lengths/len(self.model.edges.T[0])
 
 
     def calculate_graph_center(self):
@@ -154,7 +154,7 @@ class GraphAlgorithm(IController):
         # Axis 0 or 1 indexed? FIRST AXIS!!!
         diff_to_center = np.sum(self.model.vertex_pos, axis=-2)
         # Average of all positions is 'middle' of graph
-        diff_to_center /= len(self.model.vertex_indices)
+        diff_to_center /= len(self.model.vertex_ids)
         # Difference of middle of graph to predefined center
         diff_to_center -= self.graph_center
 
