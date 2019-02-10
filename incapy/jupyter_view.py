@@ -23,6 +23,8 @@ class JupyterView(IView):
         # TODO change padding size accordingly
         self.dynamic_map.opts(padding=0.5)# xaxis=None, yaxis=None,
         self._register(model)
+        # XXX Only for stop signal, might need to be changed
+        self.model = model
 
 
     def show(self):
@@ -37,11 +39,15 @@ class JupyterView(IView):
         # ], sizing_mode='fixed')
         # curdoc().add_root(self.layout)
         # show(self.layout, notebook_url='localhost:8888')
-        button = widgets.Button(description="Click Me!")
+        button = widgets.Button(description="Start")
         display(button)
 
+        def stop(b):
+            self.model.stop = True
+
         def onClick(b):
-            b.description = 'Clicked'
+            b.description = 'Stop'
+            b.on_click(stop)
             self.notify_listeners()
         button.on_click(onClick)
         #self.notify_listeners()

@@ -48,6 +48,8 @@ class GraphAlgorithm(IController):
         self.init_algorithm()
         # TODO: Maybe catch Keyboard interrupt to output position
         while True:
+            if self.model.stop:
+                break
             if not count%100:
                 print(count)
                 if not count % 300:
