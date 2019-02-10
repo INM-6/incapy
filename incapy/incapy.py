@@ -11,6 +11,8 @@ class Incapy():
         self.controller = controller_class(self.model, filename)
 
     def show(self):
+        # XXX
+        self.view.add_event_listener(self)
         return self.view.show()
 
     def add_view(self, view):

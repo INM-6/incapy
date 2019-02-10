@@ -18,3 +18,8 @@ class IView(ABC):
     @abstractmethod
     def update(self, data):
         raise NotImplementedError()
+
+    # XXX
+    @abstractmethod
+    def add_event_listener(self, listener):
+        raise NotImplementedError
