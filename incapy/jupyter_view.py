@@ -24,9 +24,6 @@ class JupyterView(IView):
         # TODO change padding size accordingly
         self.dynamic_map.opts(padding=0.5)# xaxis=None, yaxis=None,
         self._register(model)
-        # XXX Only for stop signal, might need to be changed
-        self.model = model
-
 
     def show(self):
         # renderer = hv.renderer('bokeh').instance(mode='server')
@@ -40,21 +37,46 @@ class JupyterView(IView):
         # ], sizing_mode='fixed')
         # curdoc().add_root(self.layout)
         # show(self.layout, notebook_url='localhost:8888')
-        button = widgets.Button(description="Start")
-        display(button)
+        play = widgets.Button(description="Start")
+        stop = widgets.Button(description="Stop")
+        # Horizontal alignment looks nicer than vertical
+        # Could also display each button on its own, causing vertical alignment
+        box = widgets.HBox([play, stop])
+        display(box)
 
-        def stop(b):
+        def stop_action(b):
             self.notify_listeners('stop')
-            b.description = 'Ended'
+            b.description = 'Stopped'
 
-        def onClick(b):
+        stop.on_click(stop_action)
+
+        def play_action(b):
+            self.notify_listeners('play')
+            b.on_click(play_action, remove=True)
+            b.on_click(pause_action)
+            b.description = 'Pause'
+
+        def pause_action(b):
+            self.notify_listeners('pause')
+            b.on_click(pause_action, remove=True)
+            b.on_click(play_action)
+            b.description = 'Play'
+
+        def start_action(b):
             self.notify_listeners('start')
-            b.on_click(onClick, remove=True)
-            b.on_click(stop)
-            b.description = 'Stop'
+            b.on_click(start_action, remove=True)
+            b.on_click(pause_action)
+            b.description = 'Pause'
 
-        button.on_click(onClick)
-        #self.notify_listeners()
+        play.on_click(start_action)
+
+
+        # For layouting
+        #out = widgets.Output()
+
+        #with out:
+        #display(self.dynamic_map)
+
         return self.dynamic_map
 
     def update(self, data):

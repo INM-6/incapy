@@ -25,7 +25,10 @@ class Incapy():
         self.controller.stop_iteration()
 
     def pause(self):
-        raise NotImplementedError()
+        self.controller.pause_iteration()
+
+    def play(self):
+        self.controller.continue_iteration()
 
     def notify(self, msg):
         if msg == 'start':
@@ -34,6 +37,8 @@ class Incapy():
             self.stop()
         elif msg == 'pause':
             self.pause()
+        elif msg == 'play':
+            self.play()
 
     def load_data(self):
         raise NotImplementedError()

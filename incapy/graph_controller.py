@@ -11,6 +11,9 @@ class GraphAlgorithm(IController):
 
     def __init__(self, model, filename):
         super().__init__(model)
+
+        self.wait_event = threading.Event()
+
         # Flags that are set to stop or pause execution
         self.stop = False
         self.model = model
@@ -47,6 +50,7 @@ class GraphAlgorithm(IController):
         #self.model.set_weights([1, 1, 0.5, 1, 0, 1])
 
     def start_iteration(self):
+        self.wait_event.set()
         self.run_thread = threading.Thread(target=self.run_iteration)
         self.run_thread.start()
 
@@ -56,6 +60,7 @@ class GraphAlgorithm(IController):
         self.init_algorithm()
         # TODO: Maybe catch Keyboard interrupt to output position
         while True:
+            self.wait_event.wait()
             if self.stop:
                 break
             if not count%100:
@@ -76,6 +81,12 @@ class GraphAlgorithm(IController):
 
     def stop_iteration(self):
         self.stop = True
+
+    def pause_iteration(self):
+        self.wait_event.clear()
+
+    def continue_iteration(self):
+        self.wait_event.set()
 
     def _iterate(self):
         # calculations for one time step
