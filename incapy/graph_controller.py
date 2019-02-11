@@ -26,8 +26,8 @@ class GraphAlgorithm(IController):
         # TODO: Should be changeable by user
         self.repulsive_const = 1  # Daniel: 1
         self.anim_speed_const = 1
-        # TODO: Needs to depend on anim_speed_const (and current frame rate maybe???)
-        self.max_step_size = 3*60/5000   # Daniel: 0.9, is however changed every step
+        # 1/20 is replacement for time since last frame (i.e. frame rate would be 20Hz)
+        self.max_step_size = self.anim_speed_const/20   # Daniel: 0.9, is however changed every step
 
     def populate_model(self):
         # set attributes of the graph
@@ -49,6 +49,7 @@ class GraphAlgorithm(IController):
 
     def start_iteration(self):
         count = 0
+        last_time = time.time()
         self.update_weights()
         self.init_algorithm()
         # TODO: Maybe catch Keyboard interrupt to output position
@@ -59,7 +60,14 @@ class GraphAlgorithm(IController):
                     print("Weights updated")
                     self.update_weights()
             count += 1
-            time.sleep(0.02)
+            # This makes the speed of the animation constant
+            # Even if the framerate drops, vertices will move at about the same speed
+            curr_time = time.time()
+            dt = curr_time - last_time
+            last_time = curr_time
+            # dt must be bounded, in case of string lag positions should not jump too far
+            dt = min(dt, 0.1)
+            self.max_step_size = self.anim_speed_const*dt
             self.do_step()
             try:
                 pass
@@ -164,7 +172,8 @@ class GraphAlgorithm(IController):
         diff_to_center -= self.graph_center
 
         # Move all towards center such that 'middle' of graph eventually becomes equal to center
-        self.model.vertex_pos = self.model.vertex_pos - diff_to_center[np.newaxis, :] * self.anim_speed_const
+        # anim_speed_const needs to be bounded here because else the vertices will overshoot the center
+        self.model.vertex_pos = self.model.vertex_pos - diff_to_center[np.newaxis, :] * min(self.anim_speed_const, 1)
 
         # # TODO: Inform model of change
         # # TODO: DO NOT ACCESS PRIVATE MEMBERS IN OTHER CLASSES
