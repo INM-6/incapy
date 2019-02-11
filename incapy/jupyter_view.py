@@ -7,6 +7,7 @@ from bokeh.models import Slider, Button
 from .iview import IView
 from IPython.display import display
 import ipywidgets as widgets
+import time
 hv.extension('bokeh')
 
 
@@ -43,12 +44,15 @@ class JupyterView(IView):
         display(button)
 
         def stop(b):
-            self.model.stop = True
+            self.notify_listeners('stop')
+            b.description = 'Ended'
 
         def onClick(b):
-            b.description = 'Stop'
+            self.notify_listeners('start')
+            b.on_click(onClick, remove=True)
             b.on_click(stop)
-            self.notify_listeners()
+            b.description = 'Stop'
+
         button.on_click(onClick)
         #self.notify_listeners()
         return self.dynamic_map
@@ -77,10 +81,10 @@ class JupyterView(IView):
         self.listeners.append(listener)
 
     # XXX
-    def notify_listeners(self):
+    def notify_listeners(self, msg):
         print("Hallo!!")
         for l in self.listeners:
-            l.start()
+            l.notify(msg)
 
 
 class NoView(IView):

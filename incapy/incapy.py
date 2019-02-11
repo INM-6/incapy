@@ -22,10 +22,18 @@ class Incapy():
         self.controller.start_iteration()
 
     def stop(self):
-        raise NotImplementedError()
+        self.controller.stop_iteration()
 
     def pause(self):
         raise NotImplementedError()
+
+    def notify(self, msg):
+        if msg == 'start':
+            self.start()
+        elif msg == 'stop':
+            self.stop()
+        elif msg == 'pause':
+            self.pause()
 
     def load_data(self):
         raise NotImplementedError()

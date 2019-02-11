@@ -5,8 +5,6 @@ class GraphModel(IModel):
 
     def __init__(self):
         super().__init__()
-        # XXX For signalling stop
-        self.stop = False
         self.edges = np.ndarray((0, 2))
         # mapping from vertex_indices to matrix_indices!! (e.g. missing node)
         self.edge_weights = []

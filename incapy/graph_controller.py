@@ -1,3 +1,5 @@
+import threading
+
 from .load_data import DataLoader, load_data_debug
 from .icontroller import IController
 import time
@@ -9,6 +11,8 @@ class GraphAlgorithm(IController):
 
     def __init__(self, model, filename):
         super().__init__(model)
+        # Flags that are set to stop or pause execution
+        self.stop = False
         self.model = model
         self.loader = DataLoader()
         self.loader.load_data(filename)
@@ -43,12 +47,16 @@ class GraphAlgorithm(IController):
         #self.model.set_weights([1, 1, 0.5, 1, 0, 1])
 
     def start_iteration(self):
+        self.run_thread = threading.Thread(target=self.run_iteration)
+        self.run_thread.start()
+
+    def run_iteration(self):
         count = 0
         self.update_weights()
         self.init_algorithm()
         # TODO: Maybe catch Keyboard interrupt to output position
         while True:
-            if self.model.stop:
+            if self.stop:
                 break
             if not count%100:
                 print(count)
@@ -67,7 +75,7 @@ class GraphAlgorithm(IController):
             # maybe call stop_iteration
 
     def stop_iteration(self):
-        raise NotImplementedError
+        self.stop = True
 
     def _iterate(self):
         # calculations for one time step
