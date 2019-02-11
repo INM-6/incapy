@@ -1,4 +1,4 @@
-from .load_data import DataLoader, load_data_debug
+from .load_data import DataLoader
 from .icontroller import IController
 import time
 import math
@@ -8,6 +8,11 @@ import numpy as np
 class GraphAlgorithm(IController):
 
     def __init__(self, model, filename):
+        """
+
+        :param model:
+        :param filename:
+        """
         super().__init__(model)
         self.model = model
         self.loader = DataLoader()

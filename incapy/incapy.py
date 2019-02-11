@@ -4,6 +4,10 @@ from .jupyter_view import JupyterView
 
 
 class Incapy():
+    """
+    User interface for the Incapy class. 
+
+    """
 
     def __init__(self, filename='../../data/corr_data.h5', model_class=GraphModel, view_class=JupyterView, controller_class=GraphAlgorithm):
         self.model = model_class()
