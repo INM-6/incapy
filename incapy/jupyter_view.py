@@ -13,12 +13,14 @@ class JupyterView(IView):
         self.model = model
         slide_range_update = np.arange(0, 61, 1)
         slide_range_animation = np.arange(0, 1.1, 0.1)
-        sliders = [hv.Dimension(('time_to_update_weights', ' '), default=self.model.time_to_update_weights, values=slide_range_update),
-                   hv.Dimension(('animation_speed', ' '), default=self.model.animation_speed, values=slide_range_animation)]
+        sliders = [hv.Dimension(('time_to_update_weights', 'Time Weight update'), default=self.model.time_to_update_weights),
+                   hv.Dimension(('animation_speed', 'Animation Speed '), default=self.model.animation_speed)]
         # TODO: Check using buffer
         self.pipe = Pipe(data=[], memoize=True)
+        # Time = Stream.define('Time', t=0.0)
+
         self.dynamic_map = hv.DynamicMap(self.update_plot, streams=[self.pipe], kdims=sliders)
-        # self.dynamic_map = self.dynamic_map.redim.values(time_to_update_weights=slide_range_update, animation_speed=slide_range_animation)
+        self.dynamic_map = self.dynamic_map.redim.values(time_to_update_weights=slide_range_update, animation_speed=slide_range_animation)
 
         # TODO change padding size accordingly
         self.dynamic_map.opts(padding=0.5)# xaxis=None, yaxis=None,
@@ -26,11 +28,12 @@ class JupyterView(IView):
 
     def update_plot(self, data, time_to_update_weights, animation_speed):
         print("in update plot!!!")
+        print(time_to_update_weights)
         # Change values in model
         self.model.set_time_weight_update(time_to_update_weights)
         self.model.set_animation_speed(animation_speed)
 
-        return hv.Graph(data)
+        return hv.Graph(data).opts(tools=['box_select', 'lasso_select', 'tap'])
 
     def show(self):
         return self.dynamic_map
