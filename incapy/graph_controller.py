@@ -87,6 +87,8 @@ elf.run_thread
     def reset(self):
         self.populate_model()
         self.current_frame = 0
+        self.wait_event.clear()
+        self.stop = False
 
     def start_iteration(self):
         """
@@ -98,15 +100,12 @@ elf.run_thread
         self.wait_event.set()
         self.run_thread = threading.Thread(target=self.run_iteration)
         self.run_thread.start()
-        print("HERE")
 
     def run_iteration(self):
-        print("RUN")
         count = 0
         last_time = time.time()
         self.update_weights()
         self.init_algorithm()
-        print("RUN2")
         # TODO: Maybe catch Keyboard interrupt to output position
         while True:
             self.wait_event.wait()
@@ -127,7 +126,6 @@ elf.run_thread
             dt = min(dt, 0.1)
             self.max_step_size = self.anim_speed_const*dt
             with self.mutex:
-                print("STEP")
                 self.do_step()
             try:
                 pass
