@@ -14,7 +14,7 @@ class GraphAlgorithm(IController):
 
     """
 
-    def __init__(self, model, filename):
+    def __init__(self, model, filename,repulsive_const,anim_speed_const):
         """
         Constructor for the GraphAlgorithm class. Initalizes all attributes.
 
@@ -22,6 +22,11 @@ class GraphAlgorithm(IController):
             The model class
         :param filename: string
             The filename to the data to be loaded
+        :param repulsive_const: float
+            repusive constant
+        :param anim_speed_const: float
+            animation speed constant
+
 
         """
 
@@ -43,8 +48,8 @@ class GraphAlgorithm(IController):
         # TODO: Calculate center
         self.graph_center = None
         # TODO: Should be changeable by user
-        self.repulsive_const = 1  # Daniel: 1
-        self.anim_speed_const = 1
+        self.repulsive_const = repulsive_const  # Daniel: 1
+        self.anim_speed_const = anim_speed_const
         # 1/20 is replacement for time since last frame (i.e. frame rate would be 20Hz)
         self.max_step_size = self.anim_speed_const/20   # Daniel: 0.9, is however changed every step
 
