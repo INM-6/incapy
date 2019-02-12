@@ -3,6 +3,10 @@ from abc import ABC, abstractmethod
 
 
 class IController(ABC):
+    """
+    Abstract base class / interface for the controller.
+
+    """
 
     @abstractmethod
     def __init__(self, model):

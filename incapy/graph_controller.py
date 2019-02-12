@@ -6,14 +6,26 @@ import numpy as np
 
 
 class GraphAlgorithm(IController):
+    """
+
+    The concrete controller. All the calculations are handled here.
+    Controls all the transactions and interactions.
+
+    """
 
     def __init__(self, model, filename):
         """
+        Constructor for the GraphAlgorithm class. Initalizes all attributes.
 
         :param model:
-        :param filename:
+            The model class
+        :param filename: string
+            The filename to the data to be loaded
+
         """
+
         super().__init__(model)
+
         self.model = model
         self.loader = DataLoader()
         self.loader.load_data(filename)
@@ -30,6 +42,13 @@ class GraphAlgorithm(IController):
         self.max_step_size = self.anim_speed_const/20   # Daniel: 0.9, is however changed every step
 
     def populate_model(self):
+        """
+        Populate the model with the data from the loader.
+
+        :return: None
+
+        """
+
         # set attributes of the graph
         # TODO graph needs to know weights(cross_correlation) and edge_ids
         self.model.set_edges(self.loader.edge_ids)
@@ -42,12 +61,26 @@ class GraphAlgorithm(IController):
         pass
 
     def update_weights(self):
+        """
+        Updates the weights with the current_frame weights from the loader.
+
+        :return: None
+
+        """
+
         # sends the data to the model and update the matrix every few seconds
         self.model.set_weights(self.loader.weights[self.current_frame])
         self.current_frame += 1
         #self.model.set_weights([1, 1, 0.5, 1, 0, 1])
 
     def start_iteration(self):
+        """
+        Starts the iteration to move the nodes accordingly.
+
+        :return: None
+
+        """
+
         count = 0
         last_time = time.time()
         self.update_weights()
@@ -78,21 +111,59 @@ class GraphAlgorithm(IController):
             # maybe call stop_iteration
 
     def stop_iteration(self):
+        """
+        Stops the iteration.
+
+        :return: None
+
+        """
+
         raise NotImplementedError
 
     def _iterate(self):
-        # calculations for one time step
+        """
+        Calculations for one time step.
+
+        :return: None
+
+        """
+
         raise NotImplementedError()
 
     # TODO use of np array with only two elements?
     def _vector_length(self, vector):
+        """
+        Returns the lengt of the 'vector'.
+
+        :param vector: list
+            A two-dimensional vector
+        :return: float
+            The length of the vector
+
+        """
+
         return math.sqrt(vector[0]**2+vector[1]**2)
 
     def init_algorithm(self):
+        """
+        Initialize the algorithm by calculating the spring length
+        and the graph center.
+
+        :return: None
+
+        """
+
         self.calculate_spring_length()
         self.calculate_graph_center()
 
     def calculate_spring_length(self):
+        """
+        Calculates the natrual spring length
+
+        :return: None
+
+        """
+
         # Calculate sum of edge lengths
         sum_edge_lengths = 0
         for nodes in self.model.edges:
@@ -103,12 +174,27 @@ class GraphAlgorithm(IController):
 
 
     def calculate_graph_center(self):
+        """
+        Calculates the graph center.
+
+        :return: None
+
+        """
+
         # TODO Calculate graph center
         self.graph_center = (5, 5)
 
     # Numpy mashgrid
     # Broadcasting
     def do_step(self):
+        """
+        Force-directed graph layout algorithm. Calculate the new positions of
+        all the vertices and update the model and the view.
+
+        :return: None
+
+        """
+
         # TODO: Check if copy is needed???
 
         # Get all positions twice: for target and source; reshape so they can be broadcast together by numpy
