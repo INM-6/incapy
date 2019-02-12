@@ -40,7 +40,7 @@ class JupyterView(IView):
 
     def show(self):
         """
-        Return the holoviews map in order to display it.
+        Returns the holoviews map in order to display it.
 
         :return: 'hv.DynamicMap'
             Returns the holoviews map
@@ -78,7 +78,9 @@ class JupyterView(IView):
         :param model:
             The model class.
         :return: None
+
         """
+
         model.add_listener(self)
 
     def _unregister(self, model):
@@ -87,14 +89,16 @@ class JupyterView(IView):
 
         :param model:
             The model class.
-        :return:
+        :return: None
+
         """
+
         model.remove_listener(self)
 
 
 class NoView(IView):
     """
-    For testing purposes
+    For testing purposes only
 
     """
 
