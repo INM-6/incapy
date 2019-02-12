@@ -3,6 +3,11 @@ from abc import ABC, abstractmethod
 
 
 class IView(ABC):
+    """
+    Abstract base class / interface for the view.
+
+    """
+
     @abstractmethod
     def __init__(self, model):
         pass
@@ -19,7 +24,11 @@ class IView(ABC):
     def update(self, data):
         raise NotImplementedError()
 
-    # XXX
+    # Notify everyone who needs to know about any events
     @abstractmethod
     def add_event_listener(self, listener):
         raise NotImplementedError
+
+    @abstractmethod
+    def show(self):
+        raise NotImplementedError()
