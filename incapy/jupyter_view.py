@@ -42,7 +42,7 @@ class JupyterView(IView):
 
         # TODO change padding size accordingly
         # Options for the displayed map
-        self.dynamic_map.opts(padding=0.5)# xaxis=None, yaxis=None,
+        self.dynamic_map.opts(padding=0.5, tools=['box_select', 'lasso_select', 'tap'])# xaxis=None, yaxis=None,
 
         # Register the model
         self._register(model)
