@@ -11,7 +11,7 @@ class GraphModel(IModel):
 
     def __init__(self):
         """
-        Constructor for the GraphModel. Initalizes all the attributes needed.
+        Constructor for the GraphModel. Initializes all the attributes needed.
 
         """
 

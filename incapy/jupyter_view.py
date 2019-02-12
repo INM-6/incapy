@@ -73,9 +73,18 @@ class JupyterView(IView):
         play = widgets.Button(description="Start")
         stop = widgets.Button(description="Stop")
         skip = widgets.Button(description="Jump to next point in time")
+
+        # Animation speed slider starting at 0.1 because 0 is equivalent to stopping the animation
+        # TODO make sure that default value is same as in graph_controller!!
+        speed_animation = widgets.FloatSlider(description="Animation speed", value=1.0, min=0.1, max=1,
+                                              step=0.1, orientation='horizontal')
+
+        time_to_update_weight = widgets.IntSlider(description="Time to update weight", value=30, min=0, max=60,
+                                                  step=1, orientation='horizontal')
+
         # Horizontal alignment looks nicer than vertical
         # Could also display each button on its own, causing vertical alignment
-        box = widgets.HBox([play, stop, skip])
+        box = widgets.HBox([play, stop, skip, speed_animation, time_to_update_weight])
         display(box)
 
         def skip_action(b):
@@ -122,6 +131,16 @@ class JupyterView(IView):
             b.description = 'Pause'
 
         play.on_click(start_action)
+
+        def on_value_change(change):
+            self.notify_slider_listeners('speed_change', change['new'])
+
+        speed_animation.observe(on_value_change, names='value')
+
+        def time_to_update_weight_change(change):
+            self.notify_slider_listeners('update_weight_change', change['new'])
+
+        time_to_update_weight.observe(time_to_update_weight_change, names='value')
 
 
         # For layouting
@@ -188,9 +207,12 @@ class JupyterView(IView):
 
     # XXX
     def notify_listeners(self, msg):
-        print("Hallo!!")
         for l in self.listeners:
             l.notify(msg)
+
+    def notify_slider_listeners(self, msg, value):
+        for l in self.listeners:
+            l.notify_sliders(msg, value)
 
 
 class NoView(IView):
