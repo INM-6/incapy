@@ -60,6 +60,13 @@ class Incapy():
     def play(self):
         self.controller.continue_iteration()
 
+    def skip(self):
+        self.controller.update_weights()
+
+    def reset(self):
+        self.controller.reset()
+
+    # TODO: Refactor into dictionary
     def notify(self, msg):
         if msg == 'start':
             self.start()
@@ -69,6 +76,10 @@ class Incapy():
             self.pause()
         elif msg == 'play':
             self.play()
+        elif msg == 'skip':
+            self.skip()
+        elif msg == 'reset':
+            self.reset()
 
     def load_data(self):
         raise NotImplementedError()

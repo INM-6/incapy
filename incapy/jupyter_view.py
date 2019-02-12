@@ -68,14 +68,33 @@ class JupyterView(IView):
         # show(self.layout, notebook_url='localhost:8888')
         play = widgets.Button(description="Start")
         stop = widgets.Button(description="Stop")
+        skip = widgets.Button(description="Jump to next point in time")
         # Horizontal alignment looks nicer than vertical
         # Could also display each button on its own, causing vertical alignment
-        box = widgets.HBox([play, stop])
+        box = widgets.HBox([play, stop, skip])
         display(box)
+
+        def skip_action(b):
+            self.notify_listeners('skip')
+
+        skip.on_click(skip_action)
+
+        def reset_action(b):
+            self.notify_listeners('reset')
+            b.description = 'Stop'
+            b.on_click(reset_action, remove=True)
+            b.on_click(stop_action)
+            # XXX
+            play.on_click(play_action, remove=True)
+            play.on_click(pause_action, remove=True)
+            play.on_click(start_action)
+            play.description = 'Start'
 
         def stop_action(b):
             self.notify_listeners('stop')
-            b.description = 'Stopped'
+            b.description = 'Reset'
+            b.on_click(stop_action, remove=True)
+            b.on_click(reset_action)
 
         stop.on_click(stop_action)
 

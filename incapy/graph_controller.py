@@ -27,6 +27,8 @@ class GraphAlgorithm(IController):
 
         super().__init__(model)
         self.wait_event = threading.Event()
+        self.mutex = threading.Lock()
+        self.run_thread = None
 
         # Flags that are set to stop or pause execution
         self.stop = False
@@ -38,6 +40,7 @@ class GraphAlgorithm(IController):
         self.current_frame = 0
         self.update_weights()
         self.natural_spring_length = None
+        # TODO: Calculate center
         self.graph_center = None
         # TODO: Should be changeable by user
         self.repulsive_const = 1  # Daniel: 1
@@ -48,7 +51,7 @@ class GraphAlgorithm(IController):
     def populate_model(self):
         """
         Populate the model with the data from the loader.
-
+elf.run_thread
         :return: None
 
         """
@@ -73,9 +76,17 @@ class GraphAlgorithm(IController):
         """
 
         # sends the data to the model and update the matrix every few seconds
-        self.model.set_weights(self.loader.weights[self.current_frame])
+        try:
+            with self.mutex:
+                self.model.set_weights(self.loader.weights[self.current_frame])
+        except IndexError:
+            pass
         self.current_frame += 1
         #self.model.set_weights([1, 1, 0.5, 1, 0, 1])
+
+    def reset(self):
+        self.populate_model()
+        self.current_frame = 0
 
     def start_iteration(self):
         """
@@ -87,22 +98,25 @@ class GraphAlgorithm(IController):
         self.wait_event.set()
         self.run_thread = threading.Thread(target=self.run_iteration)
         self.run_thread.start()
+        print("HERE")
 
     def run_iteration(self):
+        print("RUN")
         count = 0
         last_time = time.time()
         self.update_weights()
         self.init_algorithm()
+        print("RUN2")
         # TODO: Maybe catch Keyboard interrupt to output position
         while True:
             self.wait_event.wait()
             if self.stop:
                 break
-            if not count%100:
-                print(count)
-                if not count % 300:
-                    print("Weights updated")
-                    self.update_weights()
+            # if not count%100:
+            #     print(count)
+            #     if not count % 300:
+            #         print("Weights updated")
+            #         self.update_weights()
             count += 1
             # This makes the speed of the animation constant
             # Even if the framerate drops, vertices will move at about the same speed
@@ -112,7 +126,9 @@ class GraphAlgorithm(IController):
             # dt must be bounded, in case of string lag positions should not jump too far
             dt = min(dt, 0.1)
             self.max_step_size = self.anim_speed_const*dt
-            self.do_step()
+            with self.mutex:
+                print("STEP")
+                self.do_step()
             try:
                 pass
                 # self.update_weights()
