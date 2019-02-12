@@ -50,6 +50,7 @@ class JupyterView(IView):
 
         stop.on_click(stop_action)
 
+        # TODO: These could be refactored into single function
         def play_action(b):
             self.notify_listeners('play')
             b.on_click(play_action, remove=True)
