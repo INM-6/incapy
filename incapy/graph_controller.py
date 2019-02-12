@@ -105,7 +105,7 @@ elf.run_thread
         xmask = x>0.2068966
 
         x[xmask] = (x[xmask])**3
-        x[np.logical_not(xmask)] = (x[np.logical_not(xmask)]*0.1284185)-0.177129
+        x[np.logical_not(xmask)] = (x[np.logical_not(xmask)]*0.1284185)-0.0177129
 
         print('x', x)
 
@@ -125,14 +125,9 @@ elf.run_thread
 
 
         cmask = colors_rgb > 0.0031308
-        colors_rgb[cmask] = (colors_rgb[cmask] **0.4166667)*1.055 - 0.55
+        colors_rgb[cmask] = (colors_rgb[cmask] **0.4166667)*1.055 - 0.055
         colors_rgb[np.logical_not(cmask)] = colors_rgb[np.logical_not(cmask)] * 12.92
-        # a3fRGB[0] > .0031308
-        # f ? std::pow(a3fRGB[0], .4166667
-        # f) *1.055
-        # f - .055
-        # f: a3fRGB[0] * 12.92
-        # f;
+
 
         print(colors_rgb)
 
