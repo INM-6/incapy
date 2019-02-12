@@ -31,6 +31,7 @@ class Incapy():
         self.controller.continue_iteration()
 
     def notify(self, msg):
+        print(msg)
         if msg == 'start':
             self.start()
         elif msg == 'stop':

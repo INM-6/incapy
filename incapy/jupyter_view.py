@@ -7,6 +7,9 @@ from bokeh.models import Slider, Button
 from .iview import IView
 from IPython.display import display
 import ipywidgets as widgets
+from bokeh.resources import INLINE
+import bokeh.io
+bokeh.io.output_notebook(INLINE)
 import time
 hv.extension('bokeh')
 
@@ -26,58 +29,83 @@ class JupyterView(IView):
         self._register(model)
 
     def show(self):
-        # renderer = hv.renderer('bokeh').instance(mode='server')
-        # # renderer.app(self.dynamic_map, show=True, websocket_origin='localhost:8888')
-        # plot = renderer.get_plot(self.dynamic_map, curdoc())
-        # button = Button(label='► Play', width=60)
-        # button.on_click(self.notify_listeners)
-        # self.layout = layout([
-        #     [plot.state],
-        #     [button],
-        # ], sizing_mode='fixed')
-        # curdoc().add_root(self.layout)
-        # show(self.layout, notebook_url='localhost:8888')
-        play = widgets.Button(description="Start")
-        stop = widgets.Button(description="Stop")
-        # Horizontal alignment looks nicer than vertical
-        # Could also display each button on its own, causing vertical alignment
-        box = widgets.HBox([play, stop])
-        display(box)
+        def modify_doc(doc):
+            # renderer = hv.renderer('bokeh').instance(mode='server')
+            # # renderer.app(self.dynamic_map, show=True, websocket_origin='localhost:8888')
+            # plot = renderer.get_plot(self.dynamic_map, curdoc())
+            # button = Button(label='► Play', width=60)
+            # button.on_click(self.notify_listeners)
+            # self.layout = layout([
+            #     [plot.state],
+            #     [button],
+            # ], sizing_mode='fixed')
+            # curdoc().add_root(self.layout)
+            # show(self.layout, notebook_url='localhost:8888')
+            #play = widgets.Button(description="Start")
+            stop = widgets.Button(description="Stop")
+            # Horizontal alignment looks nicer than vertical
+            # Could also display each button on its own, causing vertical alignment
+            #box = widgets.HBox([play, stop])
+            display(stop)
 
-        def stop_action(b):
-            self.notify_listeners('stop')
-            b.description = 'Stopped'
+            play = Button(label='► Play', width=60)
+            def stop_action(b):
+                self.notify_listeners('stop')
+                b.description = 'Stopped'
 
-        stop.on_click(stop_action)
+            stop.on_click(stop_action)
 
-        def play_action(b):
-            self.notify_listeners('play')
-            b.on_click(play_action, remove=True)
-            b.on_click(pause_action)
-            b.description = 'Pause'
+            def play_action():
+                self.notify_listeners('play')
+                #play.on_click(play_action, remove=True)
+                play.on_click(pause_action)
+                play.label = 'Pause'
 
-        def pause_action(b):
-            self.notify_listeners('pause')
-            b.on_click(pause_action, remove=True)
-            b.on_click(play_action)
-            b.description = 'Play'
+            def pause_action():
+                self.notify_listeners('pause')
+                #play.on_click(pause_action, remove=True)
+                play.on_click(play_action)
+                play.label = 'Play'
 
-        def start_action(b):
-            self.notify_listeners('start')
-            b.on_click(start_action, remove=True)
-            b.on_click(pause_action)
-            b.description = 'Pause'
+            def start_action():
+                if(play.label == '► Play'):
+                    self.notify_listeners('start')
+                    play.label = 'Pause'
+                elif play.label == 'Pause':
+                    self.notify_listeners('pause')
+                    play.label = 'Play'
+                elif play.label == 'Play':
+                    self.notify_listeners('play')
+                    play.label = 'Pause'
+                #play.on_click(start_action, remove=True)
+                #play.on_click(pause_action)
+                #play.label = 'Pause'
 
-        play.on_click(start_action)
+            play.on_click(start_action)
 
+            renderer = hv.renderer('bokeh')
+            plot = renderer.get_plot(self.dynamic_map)
 
-        # For layouting
-        #out = widgets.Output()
+            mylayout = layout([
+                [plot.state],
+                [play],
+            ], sizing_mode='fixed')
 
-        #with out:
-        #display(self.dynamic_map)
+            doc.add_root(mylayout)
 
-        return self.dynamic_map
+            #show(mylayout)
+
+            # For layouting
+            #out = widgets.Output()
+
+            # show(play)
+            #with out:
+            #display(self.dynamic_map)
+
+            #display(mylayout)
+
+        show(modify_doc, notebook_url="http://localhost:8888")
+        return #play
 
     def update(self, data):
         # TODO see if library function in holoviews is available with option to display edges or not
