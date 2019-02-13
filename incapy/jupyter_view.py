@@ -1,5 +1,6 @@
 #from __future__ import print_function
 import holoviews as hv
+from holoviews import opts
 from holoviews.streams import Pipe
 from bokeh.io import curdoc, show
 from bokeh.layouts import layout
@@ -42,10 +43,16 @@ class JupyterView(IView):
 
         # TODO change padding size accordingly
         # Options for the displayed map
-        self.dynamic_map.opts(padding=0.5, tools=['box_select', 'lasso_select', 'tap'])# xaxis=None, yaxis=None,
+        opts.defaults(opts.Graph(width=400, height=400))
+        self.dynamic_map.opts(padding=0.5, tools=['box_select', 'lasso_select', 'tap'])\
+            .opts(opts.Graph(color_index='index', cmap=['#ff0000', '#00ff00']*50))
+        #.options(color='index', cmap='Category10')# xaxis=None, yaxis=None,
 
         # Register the model
         self._register(model)
+
+    def set_colors(self, colors):
+        self.dynamic_map.opts(opts.Graph(color_index='index', cmap=colors))
 
     def show(self):
         """

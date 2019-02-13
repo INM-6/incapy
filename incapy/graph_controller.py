@@ -4,6 +4,8 @@ from .icontroller import IController
 import time
 import math
 import numpy as np
+from colormath.color_objects import LabColor, sRGBColor
+from colormath.color_conversions import convert_color
 
 
 class GraphAlgorithm(IController):
@@ -81,21 +83,41 @@ elf.run_thread
         num_rows = 10#math.ceil(math.sqrt(len(self.loader.vertex_ids)))
 
         # constant
+        # 100 here and 36 for l or 128 here and 20 for l
         f_lab_range = 128.0
 
         colors_lab = np.ndarray((100, 3), dtype=float)
         colors_rgb = np.empty_like(colors_lab)
-        colors_lab[:, 0] = 75
+        colors_lab[:, 0] = 20
 
         # for i in range(self.loader.vertex_ids):
         #     a = -f_lab_range + (2*)
+
+        # lab = LabColor(7.5, 100, 100)
+        # res = convert_color(lab, sRGBColor)
+        # print(res.get_value_tuple())
 
         pos = self.loader.positions[:, 1:3]
         print(pos[0])
 
         colors_lab[:, 1:3] = ((2*f_lab_range*pos[:, 0:2])/num_rows) - f_lab_range
 
-        print(colors_lab)
+        #print(colors_lab)
+
+        # colors_res = []
+        # for i in range(100):
+        #     currcol = colors_lab[i]
+        #     lab = LabColor(currcol[0], currcol[1], currcol[2])
+        #     res = convert_color(lab, sRGBColor)
+        #     colors_res.append(res.get_rgb_hex())
+        #     print(res.get_value_tuple())
+        #
+        #
+        #
+        # print(colors_res)
+        # self.hex_colors = colors_res
+        # self.model.set_colors(colors_res)
+        #        print(colors_lab)
 
         # Convert to RGB
         y = colors_lab[:, 0]*0.0086207 + 0.1379310
@@ -128,7 +150,7 @@ elf.run_thread
         colors_rgb[cmask] = (colors_rgb[cmask] **0.4166667)*1.055 - 0.055
         colors_rgb[np.logical_not(cmask)] = colors_rgb[np.logical_not(cmask)] * 12.92
 
-
+        self.model.set_colors(colors_rgb)
         print(colors_rgb)
 
 
