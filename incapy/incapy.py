@@ -68,14 +68,10 @@ class Incapy():
         self.controller.reset()
 
     def change_speed(self, value):
-        self.controller.anim_speed_const = value
+        self.controller.set_anim_speed_const(value)
 
     def update_weight_change(self, value):
-        # TODO does not work yet in the beginning
-        time.sleep(value)
-        # TODO check if that works
-        self.controller.update_weights()
-
+        self.controller.set_update_weight_time(value)
 
     # TODO: Refactor into dictionary
     def notify(self, msg):

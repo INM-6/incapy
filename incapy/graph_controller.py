@@ -47,6 +47,8 @@ class GraphAlgorithm(IController):
         self.anim_speed_const = 1
         # 1/20 is replacement for time since last frame (i.e. frame rate would be 20Hz)
         self.max_step_size = self.anim_speed_const/20   # Daniel: 0.9, is however changed every step
+        # Get default from file or incapy constructor
+        self.update_weight_time = 30
 
     def set_anim_speed_const(self, value):
         """
@@ -60,6 +62,9 @@ class GraphAlgorithm(IController):
         """
 
         self.anim_speed_const = value
+
+    def set_update_weight_time(self, value):
+        self.update_weight_time = value
 
     def populate_model(self):
         """
@@ -95,7 +100,9 @@ class GraphAlgorithm(IController):
         except IndexError:
             pass
         self.current_frame += 1
-        #self.model.set_weights([1, 1, 0.5, 1, 0, 1])
+
+        # TODO introduce error handling after last iteration of correlations
+        # maybe call stop_iteration
 
     def reset(self):
         self.populate_model()
@@ -115,8 +122,9 @@ class GraphAlgorithm(IController):
         self.run_thread.start()
 
     def run_iteration(self):
-        count = 0
+        # TODO make skip weights based on number of iterations (reproducability)
         last_time = time.time()
+        update_time = last_time
         self.update_weights()
         self.init_algorithm()
         # TODO: Maybe catch Keyboard interrupt to output position
@@ -124,12 +132,7 @@ class GraphAlgorithm(IController):
             self.wait_event.wait()
             if self.stop:
                 break
-            # if not count%100:
-            #     print(count)
-            #     if not count % 300:
-            #         print("Weights updated")
-            #         self.update_weights()
-            count += 1
+
             # This makes the speed of the animation constant
             # Even if the framerate drops, vertices will move at about the same speed
             curr_time = time.time()
@@ -138,15 +141,12 @@ class GraphAlgorithm(IController):
             # dt must be bounded, in case of string lag positions should not jump too far
             dt = min(dt, 0.1)
             self.max_step_size = self.anim_speed_const*dt
+            if curr_time - update_time > self.update_weight_time:
+                if self.update_weight_time != 0:
+                    self.update_weights()
+                update_time = curr_time
             with self.mutex:
                 self.do_step()
-            try:
-                pass
-                # self.update_weights()
-            except IndexError:
-                break
-            # TODO introduce error handling after last iteration of correlations
-            # maybe call stop_iteration
 
     def stop_iteration(self):
         """
@@ -215,7 +215,6 @@ class GraphAlgorithm(IController):
             vector_1 = self.model.vertex_pos[nodes[1]]
             sum_edge_lengths += self._vector_length(vector_0-vector_1)
         self.natural_spring_length = 1.5 * sum_edge_lengths/len(self.model.edges.T[0])
-
 
     def calculate_graph_center(self):
         """

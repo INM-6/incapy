@@ -45,7 +45,7 @@ class JupyterView(IView):
         # Options for the displayed map
         opts.defaults(opts.Graph(width=400, height=400))
         self.dynamic_map.opts(padding=0.5, tools=['box_select', 'lasso_select', 'tap'])\
-            .opts(opts.Graph(color_index='index', cmap=[(255, 123, 35), (35, 150, 255)]*50))
+            .opts(opts.Graph(color_index='index', cmap=['#ff0000', '#00ff00']*50))
         #.options(color='index', cmap='Category10')# xaxis=None, yaxis=None,
 
         # Register the model
@@ -76,7 +76,7 @@ class JupyterView(IView):
 
         # Animation speed slider starting at 0.1 because 0 is equivalent to stopping the animation
         # TODO make sure that default value is same as in graph_controller!!
-        speed_animation = widgets.FloatSlider(description="Animation speed", value=1.0, min=0.1, max=1,
+        speed_animation = widgets.FloatSlider(description="Animation speed", value=1.0, min=0.1, max=5,
                                               step=0.1, orientation='horizontal')
 
         time_to_update_weight = widgets.IntSlider(description="Time to update weight", value=30, min=0, max=60,
