@@ -74,7 +74,7 @@ class Incapy():
         self.controller.set_update_weight_time(value)
 
     # TODO: Refactor into dictionary
-    def notify(self, msg):
+    def notify(self, msg, value=None):
         if msg == 'start':
             self.start()
         elif msg == 'stop':
@@ -87,13 +87,10 @@ class Incapy():
             self.skip()
         elif msg == 'reset':
             self.reset()
-
-    def notify_sliders(self, msg, value):
-        if msg == 'speed_change':
+        elif msg == 'speed_change':
             self.change_speed(value)
         elif msg == 'update_weight_change':
             self.update_weight_change(value)
-
 
 
     def load_data(self):

@@ -133,12 +133,12 @@ class JupyterView(IView):
         play.on_click(start_action)
 
         def on_value_change(change):
-            self.notify_slider_listeners('speed_change', change['new'])
+            self.notify_listeners('speed_change', change['new'])
 
         speed_animation.observe(on_value_change, names='value')
 
         def time_to_update_weight_change(change):
-            self.notify_slider_listeners('update_weight_change', change['new'])
+            self.notify_listeners('update_weight_change', change['new'])
 
         time_to_update_weight.observe(time_to_update_weight_change, names='value')
 
@@ -206,13 +206,9 @@ class JupyterView(IView):
         self.listeners.append(listener)
 
     # XXX
-    def notify_listeners(self, msg):
+    def notify_listeners(self, msg, value=None):
         for l in self.listeners:
-            l.notify(msg)
-
-    def notify_slider_listeners(self, msg, value):
-        for l in self.listeners:
-            l.notify_sliders(msg, value)
+            l.notify(msg, value)
 
 
 class NoView(IView):
