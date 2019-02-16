@@ -1,4 +1,5 @@
-from .load_data import DataLoader, load_data_debug
+import threading
+from .load_data import DataLoader
 from .icontroller import IController
 import time
 import math
@@ -6,9 +7,31 @@ import numpy as np
 
 
 class GraphAlgorithm(IController):
+    """
+
+    The concrete controller. All the calculations are handled here.
+    Controls all the transactions and interactions.
+
+    """
 
     def __init__(self, model, filename):
+        """
+        Constructor for the GraphAlgorithm class. Initalizes all attributes.
+
+        :param model:
+            The model class
+        :param filename: string
+            The filename to the data to be loaded
+
+        """
+
         super().__init__(model)
+        self.wait_event = threading.Event()
+        self.mutex = threading.Lock()
+        self.run_thread = None
+
+        # Flags that are set to stop or pause execution
+        self.stop = False
         self.model = model
         self.loader = DataLoader()
         self.loader.load_data(filename)
@@ -17,14 +40,40 @@ class GraphAlgorithm(IController):
         self.current_frame = 0
         self.update_weights()
         self.natural_spring_length = None
+        # TODO: Calculate center
         self.graph_center = None
         # TODO: Should be changeable by user
         self.repulsive_const = 1  # Daniel: 1
         self.anim_speed_const = 1
-        # TODO: Needs to depend on anim_speed_const (and current frame rate maybe???)
-        self.max_step_size = 3*60/5000   # Daniel: 0.9, is however changed every step
+        # 1/20 is replacement for time since last frame (i.e. frame rate would be 20Hz)
+        self.max_step_size = self.anim_speed_const/20   # Daniel: 0.9, is however changed every step
+        # Get default from file or incapy constructor
+        self.update_weight_time = 30
+
+    def set_anim_speed_const(self, value):
+        """
+        Sets the animation speed constant to 'value' (set via slider by user)
+
+        :param value: float
+            A float ranging from 0.1-1 (slider values)
+
+        :return: None
+
+        """
+
+        self.anim_speed_const = value
+
+    def set_update_weight_time(self, value):
+        self.update_weight_time = value
 
     def populate_model(self):
+        """
+        Populates the model with the data from the loader.
+
+        :return: None
+
+        """
+
         # set attributes of the graph
         # TODO graph needs to know weights(cross_correlation) and edge_ids
         self.model.set_edges(self.loader.edge_ids)
@@ -37,52 +86,128 @@ class GraphAlgorithm(IController):
         pass
 
     def update_weights(self):
+        """
+        Updates the weights with the current_frame weights from the loader.
+
+        :return: None
+
+        """
+
         # sends the data to the model and update the matrix every few seconds
-        self.model.set_weights(self.loader.weights[self.current_frame])
+        try:
+            with self.mutex:
+                self.model.set_weights(self.loader.weights[self.current_frame])
+        except IndexError:
+            pass
         self.current_frame += 1
-        #self.model.set_weights([1, 1, 0.5, 1, 0, 1])
+
+        # TODO introduce error handling after last iteration of correlations
+        # maybe call stop_iteration
+
+    def reset(self):
+        self.populate_model()
+        self.current_frame = 0
+        self.wait_event.clear()
+        self.stop = False
 
     def start_iteration(self):
-        count = 0
+        """
+          Starts the iteration to move the nodes accordingly.
+
+          :return: None
+
+        """
+        self.wait_event.set()
+        self.run_thread = threading.Thread(target=self.run_iteration)
+        self.run_thread.start()
+
+    def run_iteration(self):
+        # TODO make skip weights based on number of iterations (reproducability)
+        last_time = time.time()
+        update_time = last_time
         self.update_weights()
         self.init_algorithm()
         # TODO: Maybe catch Keyboard interrupt to output position
         while True:
-
-            # TODO implement timer
-            # TODO time step 0 not implemented yet (should stop)
-            if not count % (20*self.model.time_to_update_weights):
-                print(self.model.time_to_update_weights)
-                print("Weights updated")
-                self.update_weights()
-                count = 1
-            count += 1
-            time.sleep(0.02)
-            self.do_step()
-            try:
-                pass
-                # self.update_weights()
-            except IndexError:
+            self.wait_event.wait()
+            if self.stop:
                 break
-            # TODO introduce error handling after last iteration of correlations
-            # maybe call stop_iteration
+
+            # This makes the speed of the animation constant
+            # Even if the framerate drops, vertices will move at about the same speed
+            curr_time = time.time()
+            dt = curr_time - last_time
+            last_time = curr_time
+            # dt must be bounded, in case of string lag positions should not jump too far
+            dt = min(dt, 0.1)
+            self.max_step_size = self.anim_speed_const*dt
+            if curr_time - update_time > self.update_weight_time:
+                if self.update_weight_time != 0:
+                    self.update_weights()
+                update_time = curr_time
+            with self.mutex:
+                self.do_step()
 
     def stop_iteration(self):
-        raise NotImplementedError
+        """
+        Stops the iteration.
+
+        :return: None
+
+        """
+        self.stop = True
+
+    def pause_iteration(self):
+        self.wait_event.clear()
+
+    def continue_iteration(self):
+        self.wait_event.set()
+
 
     def _iterate(self):
-        # calculations for one time step
+        """
+        Calculations for one time step.
+
+        :return: None
+
+        """
+
         raise NotImplementedError()
 
     # TODO use of np array with only two elements?
     def _vector_length(self, vector):
+        """
+        Returns the lengt of the 'vector'.
+
+        :param vector: list
+            A two-dimensional vector
+        :return: float
+            The length of the vector
+
+        """
+
         return math.sqrt(vector[0]**2+vector[1]**2)
 
     def init_algorithm(self):
+        """
+        Initialize the algorithm by calculating the spring length
+        and the graph center.
+
+        :return: None
+
+        """
+
         self.calculate_spring_length()
         self.calculate_graph_center()
 
     def calculate_spring_length(self):
+        """
+        Calculates the natrual spring length
+
+        :return: None
+
+        """
+
         # Calculate sum of edge lengths
         sum_edge_lengths = 0
         for nodes in self.model.edges:
@@ -91,14 +216,28 @@ class GraphAlgorithm(IController):
             sum_edge_lengths += self._vector_length(vector_0-vector_1)
         self.natural_spring_length = 1.5 * sum_edge_lengths/len(self.model.edges.T[0])
 
-
     def calculate_graph_center(self):
+        """
+        Calculates the graph center.
+
+        :return: None
+
+        """
+
         # TODO Calculate graph center
         self.graph_center = (5, 5)
 
     # Numpy mashgrid
     # Broadcasting
     def do_step(self):
+        """
+        Force-directed graph layout algorithm. Calculate the new positions of
+        all the vertices and update the model and the view.
+
+        :return: None
+
+        """
+
         # TODO: Check if copy is needed???
 
         # Get all positions twice: for target and source; reshape so they can be broadcast together by numpy
@@ -162,7 +301,8 @@ class GraphAlgorithm(IController):
         diff_to_center -= self.graph_center
 
         # Move all towards center such that 'middle' of graph eventually becomes equal to center
-        self.model.vertex_pos = self.model.vertex_pos - diff_to_center[np.newaxis, :] * self.anim_speed_const
+        # anim_speed_const needs to be bounded here because else the vertices will overshoot the center
+        self.model.vertex_pos = self.model.vertex_pos - diff_to_center[np.newaxis, :] * min(self.anim_speed_const, 1)
 
         # # TODO: Inform model of change
         # # TODO: DO NOT ACCESS PRIVATE MEMBERS IN OTHER CLASSES

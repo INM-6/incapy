@@ -3,6 +3,10 @@ from abc import ABC, abstractmethod
 
 
 class IModel(ABC):
+    """
+    Abstract base class / interface for the model.
+
+    """
 
     @abstractmethod
     def __init__(self):
@@ -28,3 +32,7 @@ class IModel(ABC):
     @abstractmethod
     def set_vertex_ids(self, data):
         raise NotImplementedError()
+
+    @abstractmethod
+    def set_edges(self, edges):
+        raise NotImplementedError
