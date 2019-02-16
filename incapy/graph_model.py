@@ -135,3 +135,10 @@ class GraphModel(IModel):
 
     def set_animation_speed(self, animation_speed):
         self.animation_speed = animation_speed
+
+
+    def get_time_weight_update(self):
+        return self.time_to_update_weights
+
+    def get_animation_speed(self):
+        return self.animation_speed

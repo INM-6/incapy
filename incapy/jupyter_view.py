@@ -31,6 +31,8 @@ class JupyterView(IView):
 
         # Initialize the constructor of the abstract base class
         super().__init__(model)
+
+        self.model = model
         # List of all listeners that might need to react to certain input events
         # e.g. button pressed, slider moved
         self.listeners = []
@@ -76,10 +78,14 @@ class JupyterView(IView):
 
         # Animation speed slider starting at 0.1 because 0 is equivalent to stopping the animation
         # TODO make sure that default value is same as in graph_controller!!
-        speed_animation = widgets.FloatSlider(description="Animation speed", value=1.0, min=0.1, max=5,
+        animation_speed = self.model.get_animation_speed()
+
+        update_weight = self.model.get_time_weight_update()
+
+        speed_animation = widgets.FloatSlider(description="Animation speed", value=animation_speed, min=0.1, max=5,
                                               step=0.1, orientation='horizontal')
 
-        time_to_update_weight = widgets.IntSlider(description="Time to update weight", value=30, min=0, max=60,
+        time_to_update_weight = widgets.IntSlider(description="Time to update weight", value=update_weight, min=0, max=60,
                                                   step=1, orientation='horizontal')
 
         # Horizontal alignment looks nicer than vertical
