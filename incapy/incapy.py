@@ -29,13 +29,15 @@ class Incapy():
         self.view = view_class(self.model)
         self.controller = controller_class(self.model, filename)
 
-    def show(self):
+    def show(self, edge_threshold=0.6):
         """
         Show the map.
 
         :return: The view.
 
         """
+        # Define all parameters required for display
+        self.controller.set_edge_threshold(edge_threshold)
         # Register for events happening in View
         self.view.add_event_listener(self)
         return self.view.show()

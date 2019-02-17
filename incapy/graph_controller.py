@@ -35,9 +35,12 @@ class GraphAlgorithm(IController):
         self.model = model
         self.loader = DataLoader()
         self.loader.load_data(filename)
+        self.current_frame = 0
         self.calculate_weights()
         self.populate_model()
-        self.current_frame = 0
+        # Default value for threshold that determines which edges should be shown
+        self.edge_threshold = 0.6
+        self.set_edge_threshold(self.edge_threshold)
         self.update_weights()
         self.natural_spring_length = None
         # TODO: Calculate center
@@ -49,6 +52,25 @@ class GraphAlgorithm(IController):
         self.max_step_size = self.anim_speed_const/20   # Daniel: 0.9, is however changed every step
         # Get default from file or incapy constructor
         self.update_weight_time = 30
+
+    def set_edge_threshold(self, threshold=None):
+        if threshold is not None:
+            self.edge_threshold = threshold
+        # 1-threshold is conversion function from xcorr to weight
+        # Implemented in DataLoader
+        try:
+            weight_threshold, inverse_sign = self.loader.x_corr_to_weight(self.edge_threshold)
+            # x_corr is supposed to be lower than given threshold
+            # Thus, if sign of threshold is inverted, comparison needs to be inverted as well
+            if inverse_sign:
+                mask = self.loader.x_corr[self.current_frame + 1] > weight_threshold
+            else:
+                mask = self.loader.x_corr[self.current_frame + 1] < weight_threshold
+            self.model.set_edge_threshold_mask(mask)
+        # Nothing to do after last weight matrix reached
+        # TODO: Implement stop or loop behavior after last matrix
+        except IndexError:
+            pass
 
     def set_anim_speed_const(self, value):
         """
@@ -96,7 +118,9 @@ class GraphAlgorithm(IController):
         # sends the data to the model and update the matrix every few seconds
         try:
             with self.mutex:
+                # print("Updating")
                 self.model.set_weights(self.loader.weights[self.current_frame])
+                self.set_edge_threshold()
         except IndexError:
             pass
         self.current_frame += 1
@@ -225,7 +249,7 @@ class GraphAlgorithm(IController):
         """
 
         # TODO Calculate graph center
-        self.graph_center = (5, 5)
+        self.graph_center = (4.5, 4.5)
 
     # Numpy mashgrid
     # Broadcasting
