@@ -56,7 +56,7 @@ class GraphAlgorithm(IController):
         # 1/20 is replacement for time since last frame (i.e. frame rate would be 20Hz)
         self.max_step_size = self.anim_speed_const/20   # Daniel: 0.9, is however changed every step
         # Get default from file or incapy constructor
-        self.update_weight_time = 30
+        self.update_weight_time = update_weight_time
 
     def set_edge_threshold(self, threshold=None):
         if threshold is not None:
