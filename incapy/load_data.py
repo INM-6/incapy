@@ -91,8 +91,18 @@ class DataLoader:
             self.weights[timestamp] += self.weights[timestamp].T
 
             # Numpy magic to subtract added values on diagonal; should not make a difference
+            # Because diagonal represents correlation from electrode n to n
             self.weights[timestamp] -= np.diag(np.diag(self.weights[timestamp]))
-            self.weights[timestamp] = -1 * (self.weights[timestamp] - 1)
+
+            # Actually calculate graph weights from xcorr
+            # Currently this is 1-xcorr
+            self.weights[timestamp], _ = self.x_corr_to_weight(self.weights[timestamp])
 
         # Vertex Attributes
         self.positions = np.array(file['staticData/vertexAttributes/position'])
+
+    def x_corr_to_weight(self, x_corr):
+        # weight = 1-x_corr
+        weight = x_corr*(-1)+1
+        inverse_sign = True
+        return weight, inverse_sign
