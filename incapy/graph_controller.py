@@ -144,12 +144,12 @@ class GraphAlgorithm(IController):
 
         #print(colors_lab)
 
-        # colors_res = []
-        # for i in range(100):
-        #     currcol = colors_lab[i]
-        #     lab = LabColor(currcol[0], currcol[1], currcol[2])
-        #     res = convert_color(lab, sRGBColor)
-        #     colors_res.append(res.get_rgb_hex())
+        colors_res = []
+        for i in range(100):
+            currcol = colors_lab[i]
+            lab = LabColor(currcol[0], currcol[1], currcol[2])
+            res = convert_color(lab, sRGBColor)
+            colors_res.append(res.get_rgb_hex())
         #     print(res.get_value_tuple())
         #
         #
@@ -190,7 +190,7 @@ class GraphAlgorithm(IController):
         colors_rgb[cmask] = (colors_rgb[cmask] **0.4166667)*1.055 - 0.055
         colors_rgb[np.logical_not(cmask)] = colors_rgb[np.logical_not(cmask)] * 12.92
 
-        self.model.set_colors(colors_rgb)
+        self.model.set_colors(colors_res)
         print(colors_rgb)
 
 
