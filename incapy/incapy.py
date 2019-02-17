@@ -1,6 +1,7 @@
 from .graph_controller import GraphAlgorithm
 from .graph_model import GraphModel
 from .jupyter_view import JupyterView
+import time
 
 
 class Incapy():
@@ -35,13 +36,15 @@ class Incapy():
         self.controller = controller_class(self.model, filename,repulsive_const,anim_speed_const,
                                            update_weight_time)
 
-    def show(self):
+    def show(self, edge_threshold=0.6):
         """
         Show the map.
 
         :return: The view.
 
         """
+        # Define all parameters required for display
+        self.controller.set_edge_threshold(edge_threshold)
         # Register for events happening in View
         self.view.add_event_listener(self)
         return self.view.show()
@@ -73,6 +76,12 @@ class Incapy():
     def reset(self):
         self.controller.reset()
 
+    def change_speed(self, value):
+        self.controller.set_anim_speed_const(value)
+
+    def update_weight_change(self, value):
+        self.controller.set_update_weight_time(value)
+
     # TODO: Refactor into dictionary
     def notify(self, msg):
         if msg == 'start':
@@ -87,6 +96,14 @@ class Incapy():
             self.skip()
         elif msg == 'reset':
             self.reset()
+
+    def notify_sliders(self, msg, value):
+        if msg == 'speed_change':
+            self.change_speed(value)
+        elif msg == 'update_weight_change':
+            self.update_weight_change(value)
+
+
 
     def load_data(self):
         raise NotImplementedError()

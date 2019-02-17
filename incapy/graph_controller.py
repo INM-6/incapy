@@ -40,9 +40,12 @@ class GraphAlgorithm(IController):
         self.model = model
         self.loader = DataLoader()
         self.loader.load_data(filename)
+        self.current_frame = 0
         self.calculate_weights()
         self.populate_model()
-        self.current_frame = 0
+        # Default value for threshold that determines which edges should be shown
+        self.edge_threshold = 0.6
+        self.set_edge_threshold(self.edge_threshold)
         self.update_weights()
         self.natural_spring_length = None
         # TODO: Calculate center
@@ -52,11 +55,48 @@ class GraphAlgorithm(IController):
         self.anim_speed_const = anim_speed_const
         # 1/20 is replacement for time since last frame (i.e. frame rate would be 20Hz)
         self.max_step_size = self.anim_speed_const/20   # Daniel: 0.9, is however changed every step
+        # Get default from file or incapy constructor
+        self.update_weight_time = 30
+
+    def set_edge_threshold(self, threshold=None):
+        if threshold is not None:
+            self.edge_threshold = threshold
+        # 1-threshold is conversion function from xcorr to weight
+        # Implemented in DataLoader
+        try:
+            weight_threshold, inverse_sign = self.loader.x_corr_to_weight(self.edge_threshold)
+            # x_corr is supposed to be lower than given threshold
+            # Thus, if sign of threshold is inverted, comparison needs to be inverted as well
+            if inverse_sign:
+                mask = self.loader.x_corr[self.current_frame + 1] > weight_threshold
+            else:
+                mask = self.loader.x_corr[self.current_frame + 1] < weight_threshold
+            self.model.set_edge_threshold_mask(mask)
+        # Nothing to do after last weight matrix reached
+        # TODO: Implement stop or loop behavior after last matrix
+        except IndexError:
+            pass
+
+    def set_anim_speed_const(self, value):
+        """
+        Sets the animation speed constant to 'value' (set via slider by user)
+
+        :param value: float
+            A float ranging from 0.1-1 (slider values)
+
+        :return: None
+
+        """
+
+        self.anim_speed_const = value
+
+    def set_update_weight_time(self, value):
+        self.update_weight_time = value
 
     def populate_model(self):
         """
-        Populate the model with the data from the loader.
-elf.run_thread
+        Populates the model with the data from the loader.
+
         :return: None
 
         """
@@ -83,11 +123,15 @@ elf.run_thread
         # sends the data to the model and update the matrix every few seconds
         try:
             with self.mutex:
+                # print("Updating")
                 self.model.set_weights(self.loader.weights[self.current_frame])
+                self.set_edge_threshold()
         except IndexError:
             pass
         self.current_frame += 1
-        #self.model.set_weights([1, 1, 0.5, 1, 0, 1])
+
+        # TODO introduce error handling after last iteration of correlations
+        # maybe call stop_iteration
 
     def reset(self):
         self.populate_model()
@@ -107,8 +151,9 @@ elf.run_thread
         self.run_thread.start()
 
     def run_iteration(self):
-        count = 0
+        # TODO make skip weights based on number of iterations (reproducability)
         last_time = time.time()
+        update_time = last_time
         self.update_weights()
         self.init_algorithm()
         # TODO: Maybe catch Keyboard interrupt to output position
@@ -116,12 +161,7 @@ elf.run_thread
             self.wait_event.wait()
             if self.stop:
                 break
-            # if not count%100:
-            #     print(count)
-            #     if not count % 300:
-            #         print("Weights updated")
-            #         self.update_weights()
-            count += 1
+
             # This makes the speed of the animation constant
             # Even if the framerate drops, vertices will move at about the same speed
             curr_time = time.time()
@@ -130,15 +170,12 @@ elf.run_thread
             # dt must be bounded, in case of string lag positions should not jump too far
             dt = min(dt, 0.1)
             self.max_step_size = self.anim_speed_const*dt
+            if curr_time - update_time > self.update_weight_time:
+                if self.update_weight_time != 0:
+                    self.update_weights()
+                update_time = curr_time
             with self.mutex:
                 self.do_step()
-            try:
-                pass
-                # self.update_weights()
-            except IndexError:
-                break
-            # TODO introduce error handling after last iteration of correlations
-            # maybe call stop_iteration
 
     def stop_iteration(self):
         """
@@ -208,7 +245,6 @@ elf.run_thread
             sum_edge_lengths += self._vector_length(vector_0-vector_1)
         self.natural_spring_length = 1.5 * sum_edge_lengths/len(self.model.edges.T[0])
 
-
     def calculate_graph_center(self):
         """
         Calculates the graph center.
@@ -218,7 +254,7 @@ elf.run_thread
         """
 
         # TODO Calculate graph center
-        self.graph_center = (5, 5)
+        self.graph_center = (4.5, 4.5)
 
     # Numpy mashgrid
     # Broadcasting
