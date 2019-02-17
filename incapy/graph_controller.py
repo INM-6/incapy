@@ -14,7 +14,7 @@ class GraphAlgorithm(IController):
 
     """
 
-    def __init__(self, model, filename,repulsive_const,anim_speed_const):
+    def __init__(self, model, filename,repulsive_const, anim_speed_const, update_weight_time):
         """
         Constructor for the GraphAlgorithm class. Initalizes all attributes.
 
