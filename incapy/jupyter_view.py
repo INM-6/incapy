@@ -44,7 +44,7 @@ class JupyterView(IView):
         # TODO change padding size accordingly
         # Options for the displayed map
         opts.defaults(opts.Graph(width=400, height=400))
-        self.dynamic_map.opts(padding=0.5, tools=['box_select', 'lasso_select', 'tap'])\
+        self.dynamic_map.opts(padding=0.5, tools=['box_select', 'lasso_select', 'tap'], xaxis=None, yaxis=None)\
             .opts(opts.Graph(color_index='index', cmap=['#ff0000', '#00ff00']*50))
         #.options(color='index', cmap='Category10')# xaxis=None, yaxis=None,
 

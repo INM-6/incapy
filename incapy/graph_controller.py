@@ -124,11 +124,11 @@ class GraphAlgorithm(IController):
 
         # constant
         # 100 here and 36 for l or 128 here and 20 for l
-        f_lab_range = 128.0
+        f_lab_range = 100.0
 
         colors_lab = np.ndarray((100, 3), dtype=float)
         colors_rgb = np.empty_like(colors_lab)
-        colors_lab[:, 0] = 20
+        colors_lab[:, 0] = 36
 
         # for i in range(self.loader.vertex_ids):
         #     a = -f_lab_range + (2*)
@@ -191,12 +191,11 @@ class GraphAlgorithm(IController):
         colors_rgb[np.logical_not(cmask)] = colors_rgb[np.logical_not(cmask)] * 12.92
 
         self.model.set_colors(colors_res)
-        print(colors_rgb)
-
-
-
-
-
+        #self.model.set_colors(['black']*100)
+        # XXX Conversion should not be needed, definitely not here
+        # self.model.set_colors([hv.plotting.bokeh.util.rgb2hex(tuple(c))for c in colors_rgb])
+        # print(colors_rgb)
+        # self.model.set_colors([tuple(c) for c in colors_rgb])
 
     def update_weights(self):
         """
