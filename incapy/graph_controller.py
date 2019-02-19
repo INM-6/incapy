@@ -43,9 +43,13 @@ class GraphAlgorithm(IController):
         self.current_frame = 0
         self.calculate_weights()
         self.populate_model()
+
+        self.current_frame = -1
+
         # Default value for threshold that determines which edges should be shown
         self.edge_threshold = 0.6
         self.set_edge_threshold(self.edge_threshold)
+
         self.update_weights()
         self.natural_spring_length = None
         # TODO: Calculate center
@@ -56,6 +60,9 @@ class GraphAlgorithm(IController):
         # 1/20 is replacement for time since last frame (i.e. frame rate would be 20Hz)
         self.max_step_size = self.anim_speed_const/20   # Daniel: 0.9, is however changed every step
         # Get default from file or incapy constructor
+
+        self.repeat = False
+
         self.update_weight_time = update_weight_time
 
     def set_edge_threshold(self, threshold=None):
@@ -77,6 +84,7 @@ class GraphAlgorithm(IController):
         except IndexError:
             pass
 
+
     def set_anim_speed_const(self, value):
         """
         Sets the animation speed constant to 'value' (set via slider by user)
@@ -92,6 +100,11 @@ class GraphAlgorithm(IController):
 
     def set_update_weight_time(self, value):
         self.update_weight_time = value
+        # TODO doing it twice??
+        self.model.set_time_weight_update(value)
+
+    def set_repeat(self, value):
+        self.repeat = value
 
     def populate_model(self):
         """
@@ -112,23 +125,35 @@ class GraphAlgorithm(IController):
         # TODO Use Sigmoid function
         pass
 
-    def update_weights(self):
+    def update_weights(self, value=None):
         """
         Updates the weights with the current_frame weights from the loader.
 
         :return: None
 
         """
+        # XXX Prevent deadlock due to notification upon change of slider
+        if value == self.current_frame:
+            return
+        if value is None:
+            self.current_frame += 1
+            curr_window = self.current_frame
 
+        else:
+            curr_window = value
+            self.current_frame = value
         # sends the data to the model and update the matrix every few seconds
         try:
             with self.mutex:
+
+                self.model.set_weights(self.loader.weights[curr_window], curr_window)
+
                 # print("Updating")
                 self.model.set_weights(self.loader.weights[self.current_frame])
                 self.set_edge_threshold()
         except IndexError:
-            pass
-        self.current_frame += 1
+            if self.repeat:
+                self.update_weights(0)
 
         # TODO introduce error handling after last iteration of correlations
         # maybe call stop_iteration

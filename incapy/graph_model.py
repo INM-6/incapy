@@ -29,6 +29,9 @@ class GraphModel(IModel):
         # Mapping from internal array indices to external IDs
         self.vertex_id_to_index = {}
         self.vertex_index_to_id = {}
+        self.animation_speed = 1
+        self.time_to_update_weights = 5
+        self.repeat = False
 
         # Will be filled as boolean array indicating which edges surpass the threshold
         self.edge_threshold_mask = []
@@ -78,7 +81,11 @@ class GraphModel(IModel):
         self.vertex_pos = positions
         self._update_view()
 
-    def set_weights(self, weights):
+    def update_ui_elements(self, msg, value=None):
+        for l in self.listeners:
+            l.update_ui(msg, value)
+
+    def set_weights(self, weights, window):
         """
         Sets the weights.
 
@@ -89,7 +96,8 @@ class GraphModel(IModel):
         """
 
         self.edge_weights = weights
-        self._update_view()
+        self.update_ui_elements("window_change", window)
+        #self._update_view()
 
     # might not be needed
     def set_vertex_ids(self, vertex_ids):
@@ -137,7 +145,28 @@ class GraphModel(IModel):
 
         return self.edge_weights
 
+
+    def set_time_weight_update(self, time_to_update_weights):
+        print(time_to_update_weights)
+        self.time_to_update_weights = time_to_update_weights
+
+    def set_animation_speed(self, animation_speed):
+        self.animation_speed = animation_speed
+
+    def get_time_weight_update(self):
+        return self.time_to_update_weights
+
+    def get_animation_speed(self):
+        return self.animation_speed
+
+    def set_repeat(self, value):
+        self.repeat = value
+
+    def get_repeat(self):
+        return self.repeat
+
     def set_edge_threshold_mask(self, mask):
         self.edge_threshold_mask = mask
         edge_sources = np.compress(self.edge_threshold_mask, self.edges, axis=0).T[0]
         edge_targets = np.compress(self.edge_threshold_mask, self.edges, axis=0).T[1]
+
