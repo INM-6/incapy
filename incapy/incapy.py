@@ -10,7 +10,9 @@ class Incapy():
 
     """
 
-    def __init__(self, filename='../../data/corr_data.h5', model_class=GraphModel, view_class=JupyterView, controller_class=GraphAlgorithm):
+    def __init__(self, filename='../../data/corr_data.h5', model_class=GraphModel,
+                 view_class=JupyterView, controller_class=GraphAlgorithm,
+                 repulsive_const=1,anim_speed_const=1, update_weight_time=30):
         """
         Constructor for the Incapy class.
 
@@ -22,12 +24,17 @@ class Incapy():
             The view class
         :param controller_class: class
             The controller class
+        :param repulsive_const: float
+            repulsive constant
+        :param anima_speed_const: float
+            animations speed constant
 
         """
 
         self.model = model_class()
         self.view = view_class(self.model)
-        self.controller = controller_class(self.model, filename)
+        self.controller = controller_class(self.model, filename,repulsive_const,anim_speed_const,
+                                           update_weight_time)
 
     def show(self, edge_threshold=0.6):
         """
@@ -75,8 +82,14 @@ class Incapy():
     def update_weight_change(self, value):
         self.controller.set_update_weight_time(value)
 
+    def update_window(self, value):
+        self.controller.update_weights(value)
+
+    def set_repeat(self, value):
+        self.controller.set_repeat(value)
+
     # TODO: Refactor into dictionary
-    def notify(self, msg):
+    def notify(self, msg, value=None):
         if msg == 'start':
             self.start()
         elif msg == 'stop':
@@ -89,13 +102,14 @@ class Incapy():
             self.skip()
         elif msg == 'reset':
             self.reset()
-
-    def notify_sliders(self, msg, value):
-        if msg == 'speed_change':
+        elif msg == 'speed_change':
             self.change_speed(value)
         elif msg == 'update_weight_change':
             self.update_weight_change(value)
-
+        elif msg == 'current_window_change':
+            self.update_window(value)
+        elif msg == 'repeat':
+            self.set_repeat(value)
 
 
     def load_data(self):

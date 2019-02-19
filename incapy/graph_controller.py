@@ -16,7 +16,7 @@ class GraphAlgorithm(IController):
 
     """
 
-    def __init__(self, model, filename):
+    def __init__(self, model, filename,repulsive_const, anim_speed_const, update_weight_time):
         """
         Constructor for the GraphAlgorithm class. Initalizes all attributes.
 
@@ -24,6 +24,11 @@ class GraphAlgorithm(IController):
             The model class
         :param filename: string
             The filename to the data to be loaded
+        :param repulsive_const: float
+            repusive constant
+        :param anim_speed_const: float
+            animation speed constant
+
 
         """
 
@@ -40,9 +45,13 @@ class GraphAlgorithm(IController):
         self.current_frame = 0
         self.calculate_weights()
         self.populate_model()
+
+        self.current_frame = -1
+
         # Default value for threshold that determines which edges should be shown
         self.edge_threshold = 0.6
         self.set_edge_threshold(self.edge_threshold)
+
         self.update_weights()
         self.natural_spring_length = None
         self.hex_colors = None
@@ -50,12 +59,15 @@ class GraphAlgorithm(IController):
         # TODO: Calculate center
         self.graph_center = None
         # TODO: Should be changeable by user
-        self.repulsive_const = 1  # Daniel: 1
-        self.anim_speed_const = 1
+        self.repulsive_const = repulsive_const  # Daniel: 1
+        self.anim_speed_const = anim_speed_const
         # 1/20 is replacement for time since last frame (i.e. frame rate would be 20Hz)
         self.max_step_size = self.anim_speed_const/20   # Daniel: 0.9, is however changed every step
         # Get default from file or incapy constructor
-        self.update_weight_time = 30
+
+        self.repeat = False
+
+        self.update_weight_time = update_weight_time
 
     def set_edge_threshold(self, threshold=None):
         if threshold is not None:
@@ -76,6 +88,7 @@ class GraphAlgorithm(IController):
         except IndexError:
             pass
 
+
     def set_anim_speed_const(self, value):
         """
         Sets the animation speed constant to 'value' (set via slider by user)
@@ -91,6 +104,11 @@ class GraphAlgorithm(IController):
 
     def set_update_weight_time(self, value):
         self.update_weight_time = value
+        # TODO doing it twice??
+        self.model.set_time_weight_update(value)
+
+    def set_repeat(self, value):
+        self.repeat = value
 
     def populate_model(self):
         """
@@ -197,23 +215,31 @@ class GraphAlgorithm(IController):
         # print(colors_rgb)
         # self.model.set_colors([tuple(c) for c in colors_rgb])
 
-    def update_weights(self):
+    def update_weights(self, value=None):
         """
         Updates the weights with the current_frame weights from the loader.
 
         :return: None
 
         """
+        # XXX Prevent deadlock due to notification upon change of slider
+        if value == self.current_frame:
+            return
+        if value is None:
+            self.current_frame += 1
+            curr_window = self.current_frame
 
+        else:
+            curr_window = value
+            self.current_frame = value
         # sends the data to the model and update the matrix every few seconds
         try:
             with self.mutex:
-                # print("Updating")
-                self.model.set_weights(self.loader.weights[self.current_frame])
+                self.model.set_weights(self.loader.weights[curr_window], curr_window)
                 self.set_edge_threshold()
         except IndexError:
-            pass
-        self.current_frame += 1
+            if self.repeat:
+                self.update_weights(0)
 
         # TODO introduce error handling after last iteration of correlations
         # maybe call stop_iteration
