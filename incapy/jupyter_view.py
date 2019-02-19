@@ -70,42 +70,46 @@ class JupyterView(IView):
         # ], sizing_mode='fixed')
         # curdoc().add_root(self.layout)
         # show(self.layout, notebook_url='localhost:8888')
-        play = widgets.Button(description="Start")
-        stop = widgets.Button(description="Stop")
-        skip = widgets.Button(description="Jump to next point in time")
+
+        from ipywidgets import Layout
+        layout = Layout(width='4em')
+
+        play = widgets.Button(description="⏵", layout=layout)
+        stop = widgets.Button(description="⏹", layout=layout)
+        next = widgets.Button(description="⏭️", layout=layout)
 
         # Animation speed slider starting at 0.1 because 0 is equivalent to stopping the animation
         # TODO make sure that default value is same as in graph_controller!!
         speed_animation = widgets.FloatSlider(description="Animation speed", value=1.0, min=0.1, max=5,
                                               step=0.1, orientation='horizontal')
 
-        time_to_update_weight = widgets.IntSlider(description="Time to update weight", value=30, min=0, max=60,
+        time_to_update_weight = widgets.IntSlider(description="Time per window", value=30, min=0, max=60,
                                                   step=1, orientation='horizontal')
 
         # Horizontal alignment looks nicer than vertical
         # Could also display each button on its own, causing vertical alignment
-        box = widgets.HBox([play, stop, skip, speed_animation, time_to_update_weight])
+        box = widgets.HBox([play, stop, next, speed_animation, time_to_update_weight])
         display(box)
 
-        def skip_action(b):
-            self.notify_listeners('skip')
+        def next_window_action(b):
+            self.notify_listeners('next_window')
 
-        skip.on_click(skip_action)
+        next.on_click(next_window_action)
 
         def reset_action(b):
             self.notify_listeners('reset')
-            b.description = 'Stop'
+            b.description = '⏹'
             b.on_click(reset_action, remove=True)
             b.on_click(stop_action)
             # XXX
             play.on_click(play_action, remove=True)
             play.on_click(pause_action, remove=True)
             play.on_click(start_action)
-            play.description = 'Start'
+            play.description = '⏵'
 
         def stop_action(b):
             self.notify_listeners('stop')
-            b.description = 'Reset'
+            b.description = '↻'
             b.on_click(stop_action, remove=True)
             b.on_click(reset_action)
 
@@ -116,19 +120,19 @@ class JupyterView(IView):
             self.notify_listeners('play')
             b.on_click(play_action, remove=True)
             b.on_click(pause_action)
-            b.description = 'Pause'
+            b.description = '⏸'
 
         def pause_action(b):
             self.notify_listeners('pause')
             b.on_click(pause_action, remove=True)
             b.on_click(play_action)
-            b.description = 'Play'
+            b.description = '⏵'
 
         def start_action(b):
             self.notify_listeners('start')
             b.on_click(start_action, remove=True)
             b.on_click(pause_action)
-            b.description = 'Pause'
+            b.description = '⏸'
 
         play.on_click(start_action)
 
@@ -137,10 +141,10 @@ class JupyterView(IView):
 
         speed_animation.observe(on_value_change, names='value')
 
-        def time_to_update_weight_change(change):
+        def time_per_window_change(change):
             self.notify_slider_listeners('update_weight_change', change['new'])
 
-        time_to_update_weight.observe(time_to_update_weight_change, names='value')
+        time_to_update_weight.observe(time_per_window_change, names='value')
 
 
         # For layouting
