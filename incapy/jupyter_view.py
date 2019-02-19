@@ -120,8 +120,7 @@ class JupyterView(IView):
             value=False,
             description='Repeat',
             disabled=False,
-            indent=False,
-            layout=Layout(width='8em', padding='0 0 0 0')
+            indent=False
         )
 
         # Horizontal alignment looks nicer than vertical
