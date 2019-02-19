@@ -16,7 +16,7 @@ class GraphAlgorithm(IController):
 
     """
 
-    def __init__(self, model, filename,repulsive_const, anim_speed_const, update_weight_time):
+    def __init__(self, model, filename,repulsive_const, anim_speed_const, update_weight_time, edge_threshold):
         """
         Constructor for the GraphAlgorithm class. Initalizes all attributes.
 
@@ -49,7 +49,7 @@ class GraphAlgorithm(IController):
         self.current_frame = -1
 
         # Default value for threshold that determines which edges should be shown
-        self.edge_threshold = 0.6
+        self.edge_threshold = edge_threshold
         self.set_edge_threshold(self.edge_threshold)
 
         self.update_weights()
