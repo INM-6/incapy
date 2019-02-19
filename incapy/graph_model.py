@@ -17,6 +17,7 @@ class GraphModel(IModel):
 
         super().__init__()
 
+        self.hex_colors = None
         self.edges = np.ndarray((0, 2))
 
         # mapping from vertex_indices to matrix_indices!! (e.g. missing node)
@@ -66,6 +67,11 @@ class GraphModel(IModel):
         for l in self.listeners:
             l.update(((edge_sources, edge_targets),
                       (np.array(self.vertex_pos), self.vertex_ids)))
+
+    def set_colors(self, colors):
+        self.hex_colors = colors
+        for l in self.listeners:
+            l.set_colors(self.hex_colors)
 
     def set_positions(self, positions):
         """

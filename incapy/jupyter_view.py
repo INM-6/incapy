@@ -44,13 +44,28 @@ class JupyterView(IView):
         # TODO change padding size accordingly
         # Options for the displayed map
         opts.defaults(opts.Graph(width=400, height=400))
-        self.dynamic_map.opts(padding=0.5, tools=['box_select', 'lasso_select', 'tap'])\
+        self.dynamic_map.opts(padding=0.5, tools=['box_select', 'lasso_select', 'tap'], xaxis=None, yaxis=None)\
             .opts(opts.Graph(color_index='index', cmap=['#ff0000', '#00ff00']*50))
         #.options(color='index', cmap='Category10')# xaxis=None, yaxis=None,
 
         # Register the model
         self._register(model)
 
+        # TODO get min and max from graph controller!!
+        self.current_window = widgets.IntSlider(description="Current window", value=1, min=0, max=12,
+                                                step=1, orientation='horizontal', disabled=False)
+
+        self.out = widgets.Output(layout={'border': '1px solid black'})
+
+    def update_ui(self, msg, value):
+        if msg == 'window_change':
+            self.current_window.set_trait('value', value=value)
+
+            pass
+            # self.current_window.value = value
+
+    def set_colors(self, colors):
+        self.dynamic_map.opts(opts.Graph(color_index='index', cmap=colors))
         # TODO get min and max from graph controller!!
         self.current_window = widgets.IntSlider(description="Current window", value=1, min=0, max=12,
                                            step=1, orientation='horizontal', disabled=False)
@@ -88,7 +103,6 @@ class JupyterView(IView):
 
         time_to_update_weight = widgets.IntSlider(description="Time to update weight", value=update_weight, min=0,
                                                   max=60, step=1, orientation='horizontal')
-
 
         repeat = widgets.Checkbox(
             value=False,
@@ -167,7 +181,6 @@ class JupyterView(IView):
         repeat.observe(repeat_change, names='value')
 
         return self.dynamic_map
-
 
     def update(self, data):
         """
