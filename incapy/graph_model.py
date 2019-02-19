@@ -31,6 +31,7 @@ class GraphModel(IModel):
         self.vertex_index_to_id = {}
         self.animation_speed = 1
         self.time_to_update_weights = 5
+        self.repeat = False
 
     def add_listener(self, view):
         """
@@ -70,7 +71,11 @@ class GraphModel(IModel):
         self.vertex_pos = positions
         self._update_view()
 
-    def set_weights(self, weights):
+    def update_ui_elements(self, msg, value=None):
+        for l in self.listeners:
+            l.update_ui(msg, value)
+
+    def set_weights(self, weights, window):
         """
         Sets the weights.
 
@@ -81,7 +86,8 @@ class GraphModel(IModel):
         """
 
         self.edge_weights = weights
-        self._update_view()
+        self.update_ui_elements("window_change", window)
+        #self._update_view()
 
     # might not be needed
     def set_vertex_ids(self, vertex_ids):
@@ -136,9 +142,14 @@ class GraphModel(IModel):
     def set_animation_speed(self, animation_speed):
         self.animation_speed = animation_speed
 
-
     def get_time_weight_update(self):
         return self.time_to_update_weights
 
     def get_animation_speed(self):
         return self.animation_speed
+
+    def set_repeat(self, value):
+        self.repeat = value
+
+    def get_repeat(self):
+        return self.repeat

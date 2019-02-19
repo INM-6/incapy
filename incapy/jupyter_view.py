@@ -1,14 +1,11 @@
-#from __future__ import print_function
+
 import holoviews as hv
 from holoviews import opts
 from holoviews.streams import Pipe
-from bokeh.io import curdoc, show
-from bokeh.layouts import layout
-from bokeh.models import Slider, Button
 from .iview import IView
 from IPython.display import display
 import ipywidgets as widgets
-import time
+
 hv.extension('bokeh')
 
 
@@ -33,6 +30,7 @@ class JupyterView(IView):
         super().__init__(model)
 
         self.model = model
+
         # List of all listeners that might need to react to certain input events
         # e.g. button pressed, slider moved
         self.listeners = []
@@ -53,6 +51,19 @@ class JupyterView(IView):
         # Register the model
         self._register(model)
 
+        # TODO get min and max from graph controller!!
+        self.current_window = widgets.IntSlider(description="Current window", value=1, min=0, max=12,
+                                           step=1, orientation='horizontal', disabled=False)
+
+        self.out = widgets.Output(layout={'border': '1px solid black'})
+
+    def update_ui(self, msg, value):
+        if msg == 'window_change':
+            self.current_window.set_trait('value', value=value)
+
+            pass
+            #self.current_window.value = value
+
     def show(self):
         """
         Returns the holoviews map in order to display it.
@@ -61,17 +72,7 @@ class JupyterView(IView):
             Returns the holoviews map
 
         """
-        # renderer = hv.renderer('bokeh').instance(mode='server')
-        # # renderer.app(self.dynamic_map, show=True, websocket_origin='localhost:8888')
-        # plot = renderer.get_plot(self.dynamic_map, curdoc())
-        # button = Button(label='► Play', width=60)
-        # button.on_click(self.notify_listeners)
-        # self.layout = layout([
-        #     [plot.state],
-        #     [button],
-        # ], sizing_mode='fixed')
-        # curdoc().add_root(self.layout)
-        # show(self.layout, notebook_url='localhost:8888')
+
         play = widgets.Button(description="Start")
         stop = widgets.Button(description="Stop")
         skip = widgets.Button(description="Jump to next point in time")
@@ -85,12 +86,19 @@ class JupyterView(IView):
         speed_animation = widgets.FloatSlider(description="Animation speed", value=animation_speed, min=0.1, max=5,
                                               step=0.1, orientation='horizontal')
 
-        time_to_update_weight = widgets.IntSlider(description="Time to update weight", value=update_weight, min=0, max=60,
-                                                  step=1, orientation='horizontal')
+        time_to_update_weight = widgets.IntSlider(description="Time to update weight", value=update_weight, min=0,
+                                                  max=60, step=1, orientation='horizontal')
+
+
+        repeat = widgets.Checkbox(
+            value=False,
+            description='Repeat',
+            disabled=False
+        )
 
         # Horizontal alignment looks nicer than vertical
         # Could also display each button on its own, causing vertical alignment
-        box = widgets.HBox([play, stop, skip, speed_animation, time_to_update_weight])
+        box = widgets.HBox([play, stop, skip, speed_animation, time_to_update_weight, self.current_window, repeat, self.out])
         display(box)
 
         def skip_action(b):
@@ -148,14 +156,18 @@ class JupyterView(IView):
 
         time_to_update_weight.observe(time_to_update_weight_change, names='value')
 
+        def current_window_change(change):
+            self.notify_listeners('current_window_change', change['new'])
 
-        # For layouting
-        #out = widgets.Output()
+        self.current_window.observe(current_window_change, names='value')
 
-        #with out:
-        #display(self.dynamic_map)
+        def repeat_change(change):
+            self.notify_listeners('repeat', change['new'])
+
+        repeat.observe(repeat_change, names='value')
 
         return self.dynamic_map
+
 
     def update(self, data):
         """
