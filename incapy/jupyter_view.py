@@ -66,11 +66,6 @@ class JupyterView(IView):
 
     def set_colors(self, colors):
         self.dynamic_map.opts(opts.Graph(color_index='index', cmap=colors))
-        # TODO get min and max from graph controller!!
-        self.current_window = widgets.IntSlider(description="Current window", value=1, min=0, max=12,
-                                           step=1, orientation='horizontal', disabled=False)
-
-        self.out = widgets.Output(layout={'border': '1px solid black'})
 
     def update_ui(self, msg, value):
         if msg == 'window_change':
