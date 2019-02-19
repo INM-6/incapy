@@ -88,7 +88,6 @@ class GraphAlgorithm(IController):
         except IndexError:
             pass
 
-
     def set_anim_speed_const(self, value):
         """
         Sets the animation speed constant to 'value' (set via slider by user)
@@ -148,19 +147,10 @@ class GraphAlgorithm(IController):
         colors_rgb = np.empty_like(colors_lab)
         colors_lab[:, 0] = 36
 
-        # for i in range(self.loader.vertex_ids):
-        #     a = -f_lab_range + (2*)
-
-        # lab = LabColor(7.5, 100, 100)
-        # res = convert_color(lab, sRGBColor)
-        # print(res.get_value_tuple())
-
         pos = self.loader.positions[:, 1:3]
         print(pos[0])
 
         colors_lab[:, 1:3] = ((2*f_lab_range*pos[:, 0:2])/num_rows) - f_lab_range
-
-        #print(colors_lab)
 
         colors_res = []
         for i in range(100):
@@ -168,14 +158,6 @@ class GraphAlgorithm(IController):
             lab = LabColor(currcol[0], currcol[1], currcol[2])
             res = convert_color(lab, sRGBColor)
             colors_res.append(res.get_rgb_hex())
-        #     print(res.get_value_tuple())
-        #
-        #
-        #
-        # print(colors_res)
-        # self.hex_colors = colors_res
-        # self.model.set_colors(colors_res)
-        #        print(colors_lab)
 
         # Convert to RGB
         y = colors_lab[:, 0]*0.0086207 + 0.1379310
@@ -186,8 +168,6 @@ class GraphAlgorithm(IController):
 
         x[xmask] = (x[xmask])**3
         x[np.logical_not(xmask)] = (x[np.logical_not(xmask)]*0.1284185)-0.0177129
-
-        print('x', x)
 
         ymask = colors_lab[:, 0] > 8
 
@@ -209,11 +189,6 @@ class GraphAlgorithm(IController):
         colors_rgb[np.logical_not(cmask)] = colors_rgb[np.logical_not(cmask)] * 12.92
 
         self.model.set_colors(colors_res)
-        #self.model.set_colors(['black']*100)
-        # XXX Conversion should not be needed, definitely not here
-        # self.model.set_colors([hv.plotting.bokeh.util.rgb2hex(tuple(c))for c in colors_rgb])
-        # print(colors_rgb)
-        # self.model.set_colors([tuple(c) for c in colors_rgb])
 
     def update_weights(self, value=None):
         """
@@ -302,7 +277,6 @@ class GraphAlgorithm(IController):
 
     def continue_iteration(self):
         self.wait_event.set()
-
 
     def _iterate(self):
         """
