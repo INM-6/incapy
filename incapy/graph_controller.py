@@ -145,11 +145,7 @@ class GraphAlgorithm(IController):
         # sends the data to the model and update the matrix every few seconds
         try:
             with self.mutex:
-
                 self.model.set_weights(self.loader.weights[curr_window], curr_window)
-
-                # print("Updating")
-                self.model.set_weights(self.loader.weights[self.current_frame])
                 self.set_edge_threshold()
         except IndexError:
             if self.repeat:
