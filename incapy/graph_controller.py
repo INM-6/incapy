@@ -51,36 +51,60 @@ class GraphAlgorithm(IController):
         # Load the data
         self.loader = dataloader()
         self.loader.load_data(filename)
-        self.current_frame = 0
+
+        # Calculate the weights
+        # TODO currently not used yet (for other functions to be applied)
         self.calculate_weights()
+
+        # Populate the model with the data
         self.populate_model()
 
-        # current_frame at -1 in the very beginning because at first call it is
+        # NOTE: needs to be called before edge_threshold and edge_threshold needs to be called before update_weights()
+        # current_frame at -1 in the very beginning because at first call of update_weights 1 is added
         self.current_frame = -1
 
         # Default value for threshold that determines which edges should be shown
         self.edge_threshold = edge_threshold
         self.set_edge_threshold(self.edge_threshold)
 
+        # Sets the weights
         self.update_weights()
+
+        # Constants needed for the force-directed layout algorithm
         self.natural_spring_length = None
-        self.hex_colors = None
-        self.get_color_attributes()
         # TODO: Calculate center
         self.graph_center = None
-        # TODO: Should be changeable by user
+        # TODO: Should be changeable by user (interactively?)
         self.repulsive_const = repulsive_const  # Daniel: 1
         self.anim_speed_const = anim_speed_const
         # 1/20 is replacement for time since last frame (i.e. frame rate would be 20Hz)
         self.max_step_size = self.anim_speed_const/20   # Daniel: 0.9, is however changed every step
         # Get default from file or incapy constructor
 
+        # The color attributes for the nodes
+        self.hex_colors = None
+        self.get_color_attributes()
+
+        # Repeat is by default false, meaning that after the last window, no more windows will be loaded
         self.repeat = False
 
+        # The time (in seconds) when to load the new window
         self.update_weight_time = update_weight_time
 
     def set_edge_threshold(self, threshold=None):
+        """
+        Sets the edge threshold (all edges greater than the threshold are displayed)
+
+        :param threshold: float
+            The edge threshold
+
+        :return: None
+
+        """
+
+        # If threshold has been provided,
         if threshold is not None:
+            # Use that threshold
             self.edge_threshold = threshold
         # 1-threshold is conversion function from xcorr to weight
         # Implemented in DataLoader
@@ -112,6 +136,16 @@ class GraphAlgorithm(IController):
         self.anim_speed_const = value
 
     def set_update_weight_time(self, value):
+        """
+        Sets the time between the windows to be loaded to 'value' (set via slider by user)
+
+        :param value: int
+            Time (in seconds) when to load next window
+
+        :return: None
+
+        """
+
         self.update_weight_time = value
         # TODO doing it twice??
         self.model.set_time_weight_update(value)
