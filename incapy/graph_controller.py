@@ -1,5 +1,5 @@
+
 import threading
-from .load_data import DataLoader
 from .icontroller import IController
 import time
 import math
@@ -16,9 +16,10 @@ class GraphAlgorithm(IController):
 
     """
 
-    def __init__(self, model, filename,repulsive_const, anim_speed_const, update_weight_time, edge_threshold):
+    def __init__(self, model, filename, dataloader, repulsive_const, anim_speed_const, update_weight_time,
+                 edge_threshold):
         """
-        Constructor for the GraphAlgorithm class. Initalizes all attributes.
+        Constructor for the GraphAlgorithm class. Initializes all attributes.
 
         :param model:
             The model class
@@ -28,24 +29,33 @@ class GraphAlgorithm(IController):
             repusive constant
         :param anim_speed_const: float
             animation speed constant
-
+        :param edge_threshold: float
+            display all edges greater than the threshold
+        :param dataloader: class
+            The dataloader class
 
         """
 
         super().__init__(model)
+
+        # Needed for threading
         self.wait_event = threading.Event()
         self.mutex = threading.Lock()
         self.run_thread = None
 
-        # Flags that are set to stop or pause execution
+        # Flag that is set to stop or pause execution
         self.stop = False
+
         self.model = model
-        self.loader = DataLoader()
+
+        # Load the data
+        self.loader = dataloader()
         self.loader.load_data(filename)
         self.current_frame = 0
         self.calculate_weights()
         self.populate_model()
 
+        # current_frame at -1 in the very beginning because at first call it is
         self.current_frame = -1
 
         # Default value for threshold that determines which edges should be shown

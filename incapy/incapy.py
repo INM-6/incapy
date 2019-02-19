@@ -2,6 +2,7 @@
 from .graph_controller import GraphAlgorithm
 from .graph_model import GraphModel
 from .jupyter_view import JupyterView
+from .load_data import DataLoader
 
 
 class Incapy():
@@ -11,7 +12,7 @@ class Incapy():
     """
 
     def __init__(self, filename='../../data/corr_data.h5', model_class=GraphModel, view_class=JupyterView,
-                 controller_class=GraphAlgorithm, repulsive_const=1, anim_speed_const=1, update_weight_time=30,
+                 controller_class=GraphAlgorithm, data_loader_class = DataLoader, repulsive_const=1, anim_speed_const=1, update_weight_time=30,
                  edge_threshold=0.6):
         """
         Constructor for the Incapy class.
@@ -24,18 +25,22 @@ class Incapy():
             The view class
         :param controller_class: class
             The controller class
+        :param data_loader_class: class
+            The data loader class
         :param repulsive_const: float
             repulsive constant
         :param anim_speed_const: float
             animation speed constant
+        :param edge_threshold: float
+            display all edges greater than the threshold
 
         """
 
         # Instantiate the classes
         self.model = model_class()
         self.view = view_class(self.model)
-        self.controller = controller_class(self.model, filename, repulsive_const, anim_speed_const, update_weight_time,
-                                           edge_threshold)
+        self.controller = controller_class(self.model, filename, data_loader_class, repulsive_const, anim_speed_const,
+                                           update_weight_time, edge_threshold)
 
     def show(self):
         """
