@@ -33,6 +33,9 @@ class GraphModel(IModel):
         self.time_to_update_weights = 5
         self.repeat = False
 
+        # Will be filled as boolean array indicating which edges surpass the threshold
+        self.edge_threshold_mask = []
+
     def add_listener(self, view):
         """
         Adds the view to the list of listeners.
@@ -53,9 +56,16 @@ class GraphModel(IModel):
         :return: None
 
         """
-
+        try:
+            edge_sources = np.compress(self.edge_threshold_mask, self.edges, axis=0).T[0]
+            edge_targets = np.compress(self.edge_threshold_mask, self.edges, axis=0).T[1]
+        # If any(self.edge_threshold_mask) is False, indexing an empty array is impossible
+        except IndexError:
+            edge_sources = []
+            edge_targets = []
         for l in self.listeners:
-            l.update(((self.edges.T[0], self.edges.T[1]), (np.array(self.vertex_pos), self.vertex_ids)))
+            l.update(((edge_sources, edge_targets),
+                      (np.array(self.vertex_pos), self.vertex_ids)))
 
     def set_positions(self, positions):
         """
@@ -135,6 +145,7 @@ class GraphModel(IModel):
 
         return self.edge_weights
 
+
     def set_time_weight_update(self, time_to_update_weights):
         print(time_to_update_weights)
         self.time_to_update_weights = time_to_update_weights
@@ -153,3 +164,9 @@ class GraphModel(IModel):
 
     def get_repeat(self):
         return self.repeat
+
+    def set_edge_threshold_mask(self, mask):
+        self.edge_threshold_mask = mask
+        edge_sources = np.compress(self.edge_threshold_mask, self.edges, axis=0).T[0]
+        edge_targets = np.compress(self.edge_threshold_mask, self.edges, axis=0).T[1]
+

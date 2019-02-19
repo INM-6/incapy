@@ -184,15 +184,19 @@ class JupyterView(IView):
         try:
             pos_x = data[1][0].T[0]
             pos_y = data[1][0].T[1]
+            edge_source = data[0][0]
+            edge_target = data[0][1]
         except IndexError:
             pos_x = []
             pos_y = []
+            edge_source = []
+            edge_target = []
 
         vertex_ids = data[1][1]
 
         #nodes = hv.Nodes()
         #edges = hv.EdgePaths(([], []))
-        new_data = (([], []), (pos_x, pos_y, vertex_ids))
+        new_data = ((edge_source, edge_target), (pos_x, pos_y, vertex_ids))
         self.pipe.send(new_data)
 
     def _register(self, model):

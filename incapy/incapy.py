@@ -10,7 +10,9 @@ class Incapy():
 
     """
 
-    def __init__(self, filename='../../data/corr_data.h5', model_class=GraphModel, view_class=JupyterView, controller_class=GraphAlgorithm):
+    def __init__(self, filename='../../data/corr_data.h5', model_class=GraphModel,
+                 view_class=JupyterView, controller_class=GraphAlgorithm,
+                 repulsive_const=1,anim_speed_const=1, update_weight_time=30):
         """
         Constructor for the Incapy class.
 
@@ -22,20 +24,27 @@ class Incapy():
             The view class
         :param controller_class: class
             The controller class
+        :param repulsive_const: float
+            repulsive constant
+        :param anima_speed_const: float
+            animations speed constant
 
         """
 
         self.model = model_class()
         self.view = view_class(self.model)
-        self.controller = controller_class(self.model, filename)
+        self.controller = controller_class(self.model, filename,repulsive_const,anim_speed_const,
+                                           update_weight_time)
 
-    def show(self):
+    def show(self, edge_threshold=0.6):
         """
         Show the map.
 
         :return: The view.
 
         """
+        # Define all parameters required for display
+        self.controller.set_edge_threshold(edge_threshold)
         # Register for events happening in View
         self.view.add_event_listener(self)
         return self.view.show()

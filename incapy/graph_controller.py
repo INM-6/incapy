@@ -14,7 +14,7 @@ class GraphAlgorithm(IController):
 
     """
 
-    def __init__(self, model, filename):
+    def __init__(self, model, filename,repulsive_const, anim_speed_const, update_weight_time):
         """
         Constructor for the GraphAlgorithm class. Initalizes all attributes.
 
@@ -22,6 +22,11 @@ class GraphAlgorithm(IController):
             The model class
         :param filename: string
             The filename to the data to be loaded
+        :param repulsive_const: float
+            repusive constant
+        :param anim_speed_const: float
+            animation speed constant
+
 
         """
 
@@ -35,21 +40,50 @@ class GraphAlgorithm(IController):
         self.model = model
         self.loader = DataLoader()
         self.loader.load_data(filename)
+        self.current_frame = 0
         self.calculate_weights()
         self.populate_model()
+
         self.current_frame = -1
+
+        # Default value for threshold that determines which edges should be shown
+        self.edge_threshold = 0.6
+        self.set_edge_threshold(self.edge_threshold)
+
         self.update_weights()
         self.natural_spring_length = None
         # TODO: Calculate center
         self.graph_center = None
         # TODO: Should be changeable by user
-        self.repulsive_const = 1  # Daniel: 1
-        self.anim_speed_const = 1
+        self.repulsive_const = repulsive_const  # Daniel: 1
+        self.anim_speed_const = anim_speed_const
         # 1/20 is replacement for time since last frame (i.e. frame rate would be 20Hz)
         self.max_step_size = self.anim_speed_const/20   # Daniel: 0.9, is however changed every step
         # Get default from file or incapy constructor
-        self.update_weight_time = 30
+
         self.repeat = False
+
+        self.update_weight_time = update_weight_time
+
+    def set_edge_threshold(self, threshold=None):
+        if threshold is not None:
+            self.edge_threshold = threshold
+        # 1-threshold is conversion function from xcorr to weight
+        # Implemented in DataLoader
+        try:
+            weight_threshold, inverse_sign = self.loader.x_corr_to_weight(self.edge_threshold)
+            # x_corr is supposed to be lower than given threshold
+            # Thus, if sign of threshold is inverted, comparison needs to be inverted as well
+            if inverse_sign:
+                mask = self.loader.x_corr[self.current_frame + 1] > weight_threshold
+            else:
+                mask = self.loader.x_corr[self.current_frame + 1] < weight_threshold
+            self.model.set_edge_threshold_mask(mask)
+        # Nothing to do after last weight matrix reached
+        # TODO: Implement stop or loop behavior after last matrix
+        except IndexError:
+            pass
+
 
     def set_anim_speed_const(self, value):
         """
@@ -111,7 +145,12 @@ class GraphAlgorithm(IController):
         # sends the data to the model and update the matrix every few seconds
         try:
             with self.mutex:
+
                 self.model.set_weights(self.loader.weights[curr_window], curr_window)
+
+                # print("Updating")
+                self.model.set_weights(self.loader.weights[self.current_frame])
+                self.set_edge_threshold()
         except IndexError:
             if self.repeat:
                 self.update_weights(0)
@@ -240,7 +279,7 @@ class GraphAlgorithm(IController):
         """
 
         # TODO Calculate graph center
-        self.graph_center = (5, 5)
+        self.graph_center = (4.5, 4.5)
 
     # Numpy mashgrid
     # Broadcasting
