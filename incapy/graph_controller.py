@@ -4,6 +4,8 @@ from .icontroller import IController
 import time
 import math
 import numpy as np
+from colormath.color_objects import LabColor, sRGBColor
+from colormath.color_conversions import convert_color
 
 
 class GraphAlgorithm(IController):
@@ -43,11 +45,17 @@ class GraphAlgorithm(IController):
         self.current_frame = 0
         self.calculate_weights()
         self.populate_model()
+
+        self.current_frame = -1
+
         # Default value for threshold that determines which edges should be shown
         self.edge_threshold = 0.6
         self.set_edge_threshold(self.edge_threshold)
+
         self.update_weights()
         self.natural_spring_length = None
+        self.hex_colors = None
+        self.get_color_attributes()
         # TODO: Calculate center
         self.graph_center = None
         # TODO: Should be changeable by user
@@ -56,6 +64,9 @@ class GraphAlgorithm(IController):
         # 1/20 is replacement for time since last frame (i.e. frame rate would be 20Hz)
         self.max_step_size = self.anim_speed_const/20   # Daniel: 0.9, is however changed every step
         # Get default from file or incapy constructor
+
+        self.repeat = False
+
         self.update_weight_time = update_weight_time
 
     def set_edge_threshold(self, threshold=None):
@@ -92,6 +103,11 @@ class GraphAlgorithm(IController):
 
     def set_update_weight_time(self, value):
         self.update_weight_time = value
+        # TODO doing it twice??
+        self.model.set_time_weight_update(value)
+
+    def set_repeat(self, value):
+        self.repeat = value
 
     def populate_model(self):
         """
@@ -112,23 +128,93 @@ class GraphAlgorithm(IController):
         # TODO Use Sigmoid function
         pass
 
-    def update_weights(self):
+    def get_color_attributes(self):
+        """
+        Calculates the color attributes of the vertices.
+
+        :return: None
+
+        """
+
+        # TODO better way to calculate number of rows?
+        num_rows = 10#math.ceil(math.sqrt(len(self.loader.vertex_ids)))
+
+        # constant
+        # 100 here and 36 for l or 128 here and 20 for l
+        f_lab_range = 100.0
+
+        colors_lab = np.ndarray((100, 3), dtype=float)
+        colors_rgb = np.empty_like(colors_lab)
+        colors_lab[:, 0] = 36
+
+        pos = self.loader.positions[:, 1:3]
+        print(pos[0])
+
+        colors_lab[:, 1:3] = ((2*f_lab_range*pos[:, 0:2])/num_rows) - f_lab_range
+
+        colors_res = []
+        for i in range(100):
+            currcol = colors_lab[i]
+            lab = LabColor(currcol[0], currcol[1], currcol[2])
+            res = convert_color(lab, sRGBColor)
+            colors_res.append(res.get_rgb_hex())
+
+        # Convert to RGB
+        y = colors_lab[:, 0]*0.0086207 + 0.1379310
+        x = colors_lab[:, 1]*0.002 + y
+        z = colors_lab[:, 2]*(-0.005) + y
+
+        xmask = x>0.2068966
+
+        x[xmask] = (x[xmask])**3
+        x[np.logical_not(xmask)] = (x[np.logical_not(xmask)]*0.1284185)-0.0177129
+
+        ymask = colors_lab[:, 0] > 8
+
+        y[ymask] = (y[ymask])**3
+        y[np.logical_not(ymask)] = (colors_lab[:, 0][np.logical_not(ymask)]) * 0.0011070
+
+        zmask = z>0.2068966
+
+        z[zmask] = z[zmask]**3
+        z[np.logical_not(zmask)] = z[np.logical_not(zmask)]* 0.1284185 - 0.0177129
+
+        colors_rgb[:, 0] = 3.0803420 * x - 1.5373990 * y - 0.5429430 * z
+        colors_rgb[:, 1] = -0.9211784 * x + 1.8759300 * y + 0.0452484 * z
+        colors_rgb[:, 2] = 0.0528813 * x - 0.2040112 * y + 1.1511299 * z
+
+
+        cmask = colors_rgb > 0.0031308
+        colors_rgb[cmask] = (colors_rgb[cmask] **0.4166667)*1.055 - 0.055
+        colors_rgb[np.logical_not(cmask)] = colors_rgb[np.logical_not(cmask)] * 12.92
+
+        self.model.set_colors(colors_res)
+
+    def update_weights(self, value=None):
         """
         Updates the weights with the current_frame weights from the loader.
 
         :return: None
 
         """
+        # XXX Prevent deadlock due to notification upon change of slider
+        if value == self.current_frame:
+            return
+        if value is None:
+            self.current_frame += 1
+            curr_window = self.current_frame
 
+        else:
+            curr_window = value
+            self.current_frame = value
         # sends the data to the model and update the matrix every few seconds
         try:
             with self.mutex:
-                # print("Updating")
-                self.model.set_weights(self.loader.weights[self.current_frame])
+                self.model.set_weights(self.loader.weights[curr_window], curr_window)
                 self.set_edge_threshold()
         except IndexError:
-            pass
-        self.current_frame += 1
+            if self.repeat:
+                self.update_weights(0)
 
         # TODO introduce error handling after last iteration of correlations
         # maybe call stop_iteration
@@ -191,7 +277,6 @@ class GraphAlgorithm(IController):
 
     def continue_iteration(self):
         self.wait_event.set()
-
 
     def _iterate(self):
         """

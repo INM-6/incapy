@@ -1,14 +1,11 @@
-#from __future__ import print_function
+
 import holoviews as hv
 from holoviews import opts
 from holoviews.streams import Pipe
-from bokeh.io import curdoc, show
-from bokeh.layouts import layout
-from bokeh.models import Slider, Button
 from .iview import IView
 from IPython.display import display
 import ipywidgets as widgets
-import time
+
 hv.extension('bokeh')
 
 
@@ -31,6 +28,9 @@ class JupyterView(IView):
 
         # Initialize the constructor of the abstract base class
         super().__init__(model)
+
+        self.model = model
+
         # List of all listeners that might need to react to certain input events
         # e.g. button pressed, slider moved
         self.listeners = []
@@ -44,12 +44,36 @@ class JupyterView(IView):
         # TODO change padding size accordingly
         # Options for the displayed map
         opts.defaults(opts.Graph(width=400, height=400))
-        self.dynamic_map.opts(padding=0.5, tools=['box_select', 'lasso_select', 'tap'])\
+        self.dynamic_map.opts(padding=0.5, tools=['box_select', 'lasso_select', 'tap'], xaxis=None, yaxis=None)\
             .opts(opts.Graph(color_index='index', cmap=['#ff0000', '#00ff00']*50))
         #.options(color='index', cmap='Category10')# xaxis=None, yaxis=None,
 
         # Register the model
         self._register(model)
+
+        # TODO get min and max from graph controller!!
+        self.current_window = widgets.IntSlider(description="Current window", value=1, min=0, max=12,
+                                                step=1, orientation='horizontal', disabled=False,
+                                                style={'description_width': '8em'})
+
+        self.out = widgets.Output(layout={'border': '1px solid black'})
+
+    def update_ui(self, msg, value):
+        if msg == 'window_change':
+            self.current_window.set_trait('value', value=value)
+
+            pass
+            # self.current_window.value = value
+
+    def set_colors(self, colors):
+        self.dynamic_map.opts(opts.Graph(color_index='index', cmap=colors))
+
+    def update_ui(self, msg, value):
+        if msg == 'window_change':
+            self.current_window.set_trait('value', value=value)
+
+            pass
+            #self.current_window.value = value
 
     def show(self):
         """
@@ -73,6 +97,8 @@ class JupyterView(IView):
 
         from ipywidgets import Layout
         layout = Layout(width='4em')
+        slider_layout = Layout()
+        slider_style = {'description_width': '8em'}
 
         play = widgets.Button(description="⏵", layout=layout)
         stop = widgets.Button(description="⏹", layout=layout)
@@ -80,15 +106,30 @@ class JupyterView(IView):
 
         # Animation speed slider starting at 0.1 because 0 is equivalent to stopping the animation
         # TODO make sure that default value is same as in graph_controller!!
-        speed_animation = widgets.FloatSlider(description="Animation speed", value=1.0, min=0.1, max=5,
-                                              step=0.1, orientation='horizontal')
+        animation_speed = self.model.get_animation_speed()
 
-        time_to_update_weight = widgets.IntSlider(description="Time per window", value=30, min=0, max=60,
-                                                  step=1, orientation='horizontal')
+        update_weight = self.model.get_time_weight_update()
+
+        speed_animation = widgets.FloatSlider(description="Animation speed", value=animation_speed, min=0.1, max=5,
+                                              step=0.1, orientation='horizontal', style=slider_style)
+
+        time_to_update_weight = widgets.IntSlider(description="Time per window", value=update_weight, min=0,
+                                                  max=60, step=1, orientation='horizontal', style=slider_style)
+
+        repeat = widgets.Checkbox(
+            value=False,
+            description='Repeat',
+            disabled=False,
+            indent=False,
+            layout=Layout(width='8em', padding='0 0 0 0')
+        )
 
         # Horizontal alignment looks nicer than vertical
         # Could also display each button on its own, causing vertical alignment
-        box = widgets.HBox([play, stop, next, speed_animation, time_to_update_weight])
+        animation_controls = widgets.HBox([play, stop, next, repeat])
+        box = widgets.VBox([animation_controls, speed_animation, time_to_update_weight, self.current_window],
+                           layout=Layout(justify_content='center'))
+        box = widgets.HBox([self.out, box])
         display(box)
 
         def next_window_action(b):
@@ -137,23 +178,29 @@ class JupyterView(IView):
         play.on_click(start_action)
 
         def on_value_change(change):
-            self.notify_slider_listeners('speed_change', change['new'])
+            self.notify_listeners('speed_change', change['new'])
 
         speed_animation.observe(on_value_change, names='value')
 
         def time_per_window_change(change):
             self.notify_slider_listeners('update_weight_change', change['new'])
 
+
         time_to_update_weight.observe(time_per_window_change, names='value')
 
+        def current_window_change(change):
+            self.notify_listeners('current_window_change', change['new'])
 
-        # For layouting
-        #out = widgets.Output()
+        self.current_window.observe(current_window_change, names='value')
 
-        #with out:
-        #display(self.dynamic_map)
+        def repeat_change(change):
+            self.notify_listeners('repeat', change['new'])
 
-        return self.dynamic_map
+        repeat.observe(repeat_change, names='value')
+        with self.out:
+            display(self.dynamic_map)
+
+        #return box
 
     def update(self, data):
         """
@@ -214,13 +261,9 @@ class JupyterView(IView):
         self.listeners.append(listener)
 
     # XXX
-    def notify_listeners(self, msg):
+    def notify_listeners(self, msg, value=None):
         for l in self.listeners:
-            l.notify(msg)
-
-    def notify_slider_listeners(self, msg, value):
-        for l in self.listeners:
-            l.notify_sliders(msg, value)
+            l.notify(msg, value)
 
 
 class NoView(IView):
