@@ -40,13 +40,12 @@ class GraphAlgorithm(IController):
         # Flags that are set to stop or pause execution
         self.stop = False
         self.model = model
+        self.current_frame = -1
         self.loader = DataLoader()
         self.loader.load_data(filename)
-        self.current_frame = 0
         self.calculate_weights()
         self.populate_model()
 
-        self.current_frame = -1
 
         # Default value for threshold that determines which edges should be shown
         self.edge_threshold = 0.6
@@ -221,7 +220,7 @@ class GraphAlgorithm(IController):
 
     def reset(self):
         self.populate_model()
-        self.current_frame = 0
+        self.current_frame = -1
         self.wait_event.clear()
         self.stop = False
 
@@ -240,7 +239,7 @@ class GraphAlgorithm(IController):
         # TODO make skip weights based on number of iterations (reproducability)
         last_time = time.time()
         update_time = last_time
-        self.update_weights()
+        self.update_weights(0)
         self.init_algorithm()
         # TODO: Maybe catch Keyboard interrupt to output position
         while True:

@@ -97,10 +97,9 @@ class JupyterView(IView):
 
         from ipywidgets import Layout
         layout = Layout(width='4em')
-        slider_layout = Layout()
         slider_style = {'description_width': '8em'}
 
-        play = widgets.Button(description="⏵", layout=layout)
+        play = widgets.Button(description="▶️", layout=layout)
         stop = widgets.Button(description="⏹", layout=layout)
         next = widgets.Button(description="⏭️", layout=layout)
 
@@ -110,7 +109,7 @@ class JupyterView(IView):
 
         update_weight = self.model.get_time_weight_update()
 
-        speed_animation = widgets.FloatSlider(description="Animation speed", value=animation_speed, min=0.1, max=5,
+        speed_animation = widgets.FloatSlider(description="Animation speed", value=animation_speed, min=0.1, max=3.02,
                                               step=0.1, orientation='horizontal', style=slider_style)
 
         time_to_update_weight = widgets.IntSlider(description="Time per window", value=update_weight, min=0,
@@ -126,7 +125,7 @@ class JupyterView(IView):
         # Horizontal alignment looks nicer than vertical
         # Could also display each button on its own, causing vertical alignment
         animation_controls = widgets.HBox([play, stop, next, repeat])
-        box = widgets.VBox([animation_controls, speed_animation, time_to_update_weight, self.current_window],
+        box = widgets.VBox([animation_controls, self.current_window, time_to_update_weight, speed_animation],
                            layout=Layout(justify_content='center'))
         box = widgets.HBox([self.out, box])
         display(box)
@@ -145,7 +144,7 @@ class JupyterView(IView):
             play.on_click(play_action, remove=True)
             play.on_click(pause_action, remove=True)
             play.on_click(start_action)
-            play.description = '⏵'
+            play.description = '▶️'
 
         def stop_action(b):
             self.notify_listeners('stop')
@@ -166,7 +165,7 @@ class JupyterView(IView):
             self.notify_listeners('pause')
             b.on_click(pause_action, remove=True)
             b.on_click(play_action)
-            b.description = '⏵'
+            b.description = '▶️'
 
         def start_action(b):
             self.notify_listeners('start')
