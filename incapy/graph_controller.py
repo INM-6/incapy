@@ -1,5 +1,5 @@
 import threading
-from incapy.icontroller import IController
+from icontroller import IController
 import time
 import math
 import numpy as np

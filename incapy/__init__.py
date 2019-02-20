@@ -1,2 +1,1 @@
-# import sys
-# sys.path.insert(0, 'incapy')
+from . import *

@@ -1,4 +1,4 @@
-from incapy.imodel import IModel
+from imodel import IModel
 import numpy as np
 
 
