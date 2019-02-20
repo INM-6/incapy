@@ -69,6 +69,16 @@ class GraphModel(IModel):
                       (np.array(self.vertex_pos), self.vertex_ids)))
 
     def set_colors(self, colors):
+        """
+        Sets the colors in the views.
+
+        :param colors: 'list'
+            A list of the color attributes of all the nodes.
+
+        :return: None
+
+        """
+
         self.hex_colors = colors
         for l in self.listeners:
             l.set_colors(self.hex_colors)
@@ -88,6 +98,18 @@ class GraphModel(IModel):
         self._update_view()
 
     def update_ui_elements(self, msg, value=None):
+        """
+        Updates the ui_elements in the views.
+
+        :param msg: string
+            The message to see what element changed
+        :param value:
+            The changed value in the view.
+
+        :return: None
+
+        """
+
         for l in self.listeners:
             l.update_ui(msg, value)
 
@@ -103,7 +125,6 @@ class GraphModel(IModel):
 
         self.edge_weights = weights
         self.update_ui_elements("window_change", window)
-        #self._update_view()
 
     # might not be needed
     def set_vertex_ids(self, vertex_ids):
@@ -151,26 +172,17 @@ class GraphModel(IModel):
 
         return self.edge_weights
 
-
-    def set_time_weight_update(self, time_to_update_weights):
-        print(time_to_update_weights)
-        self.time_to_update_weights = time_to_update_weights
-
-    def set_animation_speed(self, animation_speed):
-        self.animation_speed = animation_speed
-
-    def get_time_weight_update(self):
-        return self.time_to_update_weights
-
-    def get_animation_speed(self):
-        return self.animation_speed
-
-    def set_repeat(self, value):
-        self.repeat = value
-
-    def get_repeat(self):
-        return self.repeat
-
     def set_edge_threshold_mask(self, mask):
+        """
+        Sets the edge threshold mask.
+
+        :param mask: 'numpy-array'
+            Mask which marks all the edges that will be displayed
+            according to the edge threshold.
+
+        :return: None
+
+        """
+
         self.edge_threshold_mask = mask
         self._update_view()
