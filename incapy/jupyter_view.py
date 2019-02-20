@@ -17,7 +17,7 @@ class JupyterView(IView):
 
     """
 
-    def __init__(self, model):
+    def __init__(self, model, update_weight_time, anim_speed_const):
         """
         Constructor for the JupyterView class.
 
@@ -30,6 +30,8 @@ class JupyterView(IView):
         super().__init__(model)
 
         self.model = model
+        self.update_weight_time = update_weight_time
+        self.anim_speed_const = anim_speed_const
 
         # List of all listeners that might need to react to certain input events
         # e.g. button pressed, slider moved
@@ -103,16 +105,10 @@ class JupyterView(IView):
         stop = widgets.Button(description="⏹", layout=layout)
         next = widgets.Button(description="⏭️", layout=layout)
 
-        # Animation speed slider starting at 0.1 because 0 is equivalent to stopping the animation
-        # TODO make sure that default value is same as in graph_controller!!
-        animation_speed = self.model.get_animation_speed()
+        speed_animation = widgets.FloatSlider(description="Animation speed", value=self.anim_speed_const,
+                                              min=0.1, max=3.02, step=0.1, orientation='horizontal', style=slider_style)
 
-        update_weight = self.model.get_time_weight_update()
-
-        speed_animation = widgets.FloatSlider(description="Animation speed", value=animation_speed, min=0.1, max=3.02,
-                                              step=0.1, orientation='horizontal', style=slider_style)
-
-        time_to_update_weight = widgets.IntSlider(description="Time per window", value=update_weight, min=0,
+        time_to_update_weight = widgets.IntSlider(description="Time per window", value=self.update_weight_time, min=0,
                                                   max=60, step=1, orientation='horizontal', style=slider_style)
 
         repeat = widgets.Checkbox(
@@ -181,8 +177,7 @@ class JupyterView(IView):
         speed_animation.observe(on_value_change, names='value')
 
         def time_per_window_change(change):
-            self.notify_slider_listeners('update_weight_change', change['new'])
-
+            self.notify_listeners('update_weight_change', change['new'])
 
         time_to_update_weight.observe(time_per_window_change, names='value')
 
