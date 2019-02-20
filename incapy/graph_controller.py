@@ -1,3 +1,4 @@
+
 import threading
 from icontroller import IController
 import time
@@ -141,10 +142,21 @@ class GraphAlgorithm(IController):
         :return: None
 
         """
+
         # Explicitly NOT reset time that current window has been used
         self.update_weight_time = value
 
     def set_repeat(self, value):
+        """
+        Sets the repeat value.
+
+        :param value: bool
+            'True' when repeat is requested, else 'False'
+
+        :return: None
+
+        """
+
         self.repeat = value
 
     def populate_model(self):
@@ -225,6 +237,7 @@ class GraphAlgorithm(IController):
         colors_rgb[cmask] = (colors_rgb[cmask] **0.4166667)*1.055 - 0.055
         colors_rgb[np.logical_not(cmask)] = colors_rgb[np.logical_not(cmask)] * 12.92
 
+        # Set the colors in the model
         self.model.set_colors(colors_res)
 
     def update_weights(self, value=None):
@@ -234,6 +247,7 @@ class GraphAlgorithm(IController):
         :return: None
 
         """
+
         # XXX Prevent deadlock due to notification upon change of slider
         if value == self.current_frame:
             return
@@ -261,6 +275,13 @@ class GraphAlgorithm(IController):
         # maybe call stop_iteration
 
     def reset(self):
+        """
+        Resets the animation.
+
+        :return: None
+
+        """
+
         self.populate_model()
         self.current_frame = -1
         self.wait_event.clear()
@@ -268,9 +289,9 @@ class GraphAlgorithm(IController):
 
     def start_iteration(self):
         """
-          Starts the iteration to move the nodes accordingly.
+        Starts the iteration to move the nodes accordingly.
 
-          :return: None
+        :return: None
 
         """
         self.wait_event.set()
@@ -278,15 +299,30 @@ class GraphAlgorithm(IController):
         self.run_thread.start()
 
     def run_iteration(self):
+        """
+        Orchestrating function for running the animation.
+
+        :return: None
+
+        """
+
         # TODO make skip weights based on number of iterations (reproducability)
+
+        # Time is needed for updating weights after certain time (update_weight_time)
         last_time = time.time()
         self.current_window_time = last_time
+
         self.update_weights(0)
         self.init_algorithm()
+
         # TODO: Maybe catch Keyboard interrupt to output position
+
         while True:
+            # Wait for other events
             self.wait_event.wait()
+            # If stop is requested,
             if self.stop:
+                # stop the run_iteration
                 break
 
             # This makes the speed of the animation constant
@@ -294,13 +330,18 @@ class GraphAlgorithm(IController):
             curr_time = time.time()
             dt = curr_time - last_time
             last_time = curr_time
+
             # dt must be bounded, in case of string lag positions should not jump too far
             dt = min(dt, 0.1)
             self.max_step_size = self.anim_speed_const*dt
+
+            # Load the new window, if the update_weight_time is reached
             if curr_time - self.current_window_time > self.update_weight_time:
                 if self.update_weight_time != 0:
                     self.update_weights()
+
             with self.mutex:
+                # The function to calculate the new positions
                 self.do_step()
 
     def stop_iteration(self):
@@ -313,9 +354,23 @@ class GraphAlgorithm(IController):
         self.stop = True
 
     def pause_iteration(self):
+        """
+        Pauses the iteration.
+
+        :return: None
+
+        """
+
         self.wait_event.clear()
 
     def continue_iteration(self):
+        """
+        Continues the iteration after pausing it.
+
+        :return: None
+
+        """
+
         self.wait_event.set()
 
     def _iterate(self):
@@ -385,8 +440,8 @@ class GraphAlgorithm(IController):
     # Broadcasting
     def do_step(self):
         """
-        Force-directed graph layout algorithm. Calculate the new positions of
-        all the vertices and update the model and the view.
+        Force-directed graph layout algorithm. Calculates the new positions of
+        all the vertices and updates the model and the view.
 
         :return: None
 
