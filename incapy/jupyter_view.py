@@ -2,7 +2,7 @@
 import holoviews as hv
 from holoviews import opts
 from holoviews.streams import Pipe
-from iview import IView
+from incapy.iview import IView
 from IPython.display import display
 import ipywidgets as widgets
 
@@ -17,7 +17,7 @@ class JupyterView(IView):
 
     """
 
-    def __init__(self, model):
+    def __init__(self, model, update_weight_time, anim_speed_const):
         """
         Constructor for the JupyterView class.
 
@@ -30,6 +30,8 @@ class JupyterView(IView):
         super().__init__(model)
 
         self.model = model
+        self.update_weight_time = update_weight_time
+        self.anim_speed_const = anim_speed_const
 
         # List of all listeners that might need to react to certain input events
         # e.g. button pressed, slider moved
@@ -53,7 +55,8 @@ class JupyterView(IView):
 
         # TODO get min and max from graph controller!!
         self.current_window = widgets.IntSlider(description="Current window", value=1, min=0, max=12,
-                                                step=1, orientation='horizontal', disabled=False)
+                                                step=1, orientation='horizontal', disabled=False,
+                                                style={'description_width': '8em'})
 
         self.out = widgets.Output(layout={'border': '1px solid black'})
 
@@ -66,11 +69,6 @@ class JupyterView(IView):
 
     def set_colors(self, colors):
         self.dynamic_map.opts(opts.Graph(color_index='index', cmap=colors))
-        # TODO get min and max from graph controller!!
-        self.current_window = widgets.IntSlider(description="Current window", value=1, min=0, max=12,
-                                           step=1, orientation='horizontal', disabled=False)
-
-        self.out = widgets.Output(layout={'border': '1px solid black'})
 
     def update_ui(self, msg, value):
         if msg == 'window_change':
@@ -87,53 +85,73 @@ class JupyterView(IView):
             Returns the holoviews map
 
         """
+        # renderer = hv.renderer('bokeh').instance(mode='server')
+        # # renderer.app(self.dynamic_map, show=True, websocket_origin='localhost:8888')
+        # plot = renderer.get_plot(self.dynamic_map, curdoc())
+        # button = Button(label='► Play', width=60)
+        # button.on_click(self.notify_listeners)
+        # self.layout = layout([
+        #     [plot.state],
+        #     [button],
+        # ], sizing_mode='fixed')
+        # curdoc().add_root(self.layout)
+        # show(self.layout, notebook_url='localhost:8888')
 
-        play = widgets.Button(description="Start")
-        stop = widgets.Button(description="Stop")
-        skip = widgets.Button(description="Jump to next point in time")
+        from ipywidgets import Layout
+        layout = Layout(width='4em')
+        slider_style = {'description_width': '8em'}
 
-        # Animation speed slider starting at 0.1 because 0 is equivalent to stopping the animation
-        # TODO make sure that default value is same as in graph_controller!!
-        animation_speed = self.model.get_animation_speed()
+        play = widgets.Button(description="▶️", layout=layout)
+        stop = widgets.Button(description="⏹", layout=layout)
+        next = widgets.Button(description="⏭️", layout=layout)
 
-        update_weight = self.model.get_time_weight_update()
+        speed_animation = widgets.FloatSlider(description="Animation speed", value=self.anim_speed_const,
+                                              min=0.1, max=3.02, step=0.1, orientation='horizontal', style=slider_style)
 
-        speed_animation = widgets.FloatSlider(description="Animation speed", value=animation_speed, min=0.1, max=5,
-                                              step=0.1, orientation='horizontal')
-
-        time_to_update_weight = widgets.IntSlider(description="Time to update weight", value=update_weight, min=0,
-                                                  max=60, step=1, orientation='horizontal')
+        time_to_update_weight = widgets.IntSlider(description="Time per window", value=self.update_weight_time, min=0,
+                                                  max=60, step=1, orientation='horizontal', style=slider_style)
 
         repeat = widgets.Checkbox(
             value=False,
             description='Repeat',
-            disabled=False
+            disabled=False,
+            indent=False
+        )
+
+        repeat = widgets.ToggleButton(
+            value=False,
+            # description='🔁',
+            description='⮔',
+            layout=layout
         )
 
         # Horizontal alignment looks nicer than vertical
         # Could also display each button on its own, causing vertical alignment
-        box = widgets.HBox([play, stop, skip, speed_animation, time_to_update_weight, self.current_window, repeat, self.out])
+        animation_controls = widgets.HBox([play, stop, next, repeat])
+        box = widgets.VBox([animation_controls, self.current_window, time_to_update_weight, speed_animation],
+                           layout=Layout(justify_content='center'))
+        box = widgets.HBox([self.out, box])
         display(box)
 
-        def skip_action(b):
-            self.notify_listeners('skip')
+        def next_window_action(b):
+            self.notify_listeners('next_window')
 
-        skip.on_click(skip_action)
+        next.on_click(next_window_action)
 
         def reset_action(b):
             self.notify_listeners('reset')
-            b.description = 'Stop'
+            b.description = '⏹'
             b.on_click(reset_action, remove=True)
             b.on_click(stop_action)
             # XXX
             play.on_click(play_action, remove=True)
             play.on_click(pause_action, remove=True)
             play.on_click(start_action)
-            play.description = 'Start'
+            play.description = '▶️'
 
         def stop_action(b):
             self.notify_listeners('stop')
-            b.description = 'Reset'
+            b.description = '↻'
             b.on_click(stop_action, remove=True)
             b.on_click(reset_action)
 
@@ -144,19 +162,19 @@ class JupyterView(IView):
             self.notify_listeners('play')
             b.on_click(play_action, remove=True)
             b.on_click(pause_action)
-            b.description = 'Pause'
+            b.description = '⏸'
 
         def pause_action(b):
             self.notify_listeners('pause')
             b.on_click(pause_action, remove=True)
             b.on_click(play_action)
-            b.description = 'Play'
+            b.description = '▶️'
 
         def start_action(b):
             self.notify_listeners('start')
             b.on_click(start_action, remove=True)
             b.on_click(pause_action)
-            b.description = 'Pause'
+            b.description = '⏸'
 
         play.on_click(start_action)
 
@@ -165,10 +183,10 @@ class JupyterView(IView):
 
         speed_animation.observe(on_value_change, names='value')
 
-        def time_to_update_weight_change(change):
+        def time_per_window_change(change):
             self.notify_listeners('update_weight_change', change['new'])
 
-        time_to_update_weight.observe(time_to_update_weight_change, names='value')
+        time_to_update_weight.observe(time_per_window_change, names='value')
 
         def current_window_change(change):
             self.notify_listeners('current_window_change', change['new'])
@@ -179,8 +197,10 @@ class JupyterView(IView):
             self.notify_listeners('repeat', change['new'])
 
         repeat.observe(repeat_change, names='value')
+        with self.out:
+            display(self.dynamic_map)
 
-        return self.dynamic_map
+        #return box
 
     def update(self, data):
         """

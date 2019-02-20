@@ -1,4 +1,4 @@
-from imodel import IModel
+from incapy.imodel import IModel
 import numpy as np
 
 
@@ -173,3 +173,4 @@ class GraphModel(IModel):
 
     def set_edge_threshold_mask(self, mask):
         self.edge_threshold_mask = mask
+        self._update_view()
