@@ -122,7 +122,7 @@ class JupyterView(IView):
             value=False,
             # description='🔁',
             description='⮔',
-            layout=Layout(width='6em')
+            layout=layout
         )
 
         # Horizontal alignment looks nicer than vertical
