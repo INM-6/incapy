@@ -101,9 +101,8 @@ class GraphAlgorithm(IController):
         self.anim_speed_const = value
 
     def set_update_weight_time(self, value):
+        # Explicitly NOT reset time that current window has been used
         self.update_weight_time = value
-        # TODO doing it twice??
-        self.model.set_time_weight_update(value)
 
     def set_repeat(self, value):
         self.repeat = value
@@ -211,6 +210,10 @@ class GraphAlgorithm(IController):
             with self.mutex:
                 self.model.set_weights(self.loader.weights[curr_window], curr_window)
                 self.set_edge_threshold()
+                # New window has now been used for 0 seconds
+                # Thus this time needs to be reset in order not to move on too fast
+                # If this is not done, this window will be replaced by the next after a too short period of time
+                self.current_window_time = time.time()
         except IndexError:
             if self.repeat:
                 self.update_weights(0)
@@ -238,7 +241,7 @@ class GraphAlgorithm(IController):
     def run_iteration(self):
         # TODO make skip weights based on number of iterations (reproducability)
         last_time = time.time()
-        update_time = last_time
+        self.current_window_time = last_time
         self.update_weights(0)
         self.init_algorithm()
         # TODO: Maybe catch Keyboard interrupt to output position
@@ -255,10 +258,10 @@ class GraphAlgorithm(IController):
             # dt must be bounded, in case of string lag positions should not jump too far
             dt = min(dt, 0.1)
             self.max_step_size = self.anim_speed_const*dt
-            if curr_time - update_time > self.update_weight_time:
+            if curr_time - self.current_window_time > self.update_weight_time:
                 if self.update_weight_time != 0:
                     self.update_weights()
-                update_time = curr_time
+                # self.current_window_time = curr_time
             with self.mutex:
                 self.do_step()
 

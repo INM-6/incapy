@@ -10,6 +10,7 @@ class Incapy():
 
     """
 
+    # Incapy class needs to control all constants, because they are only passed through here
     def __init__(self, filename='../../data/corr_data.h5', model_class=GraphModel,
                  view_class=JupyterView, controller_class=GraphAlgorithm,
                  repulsive_const=1,anim_speed_const=1, update_weight_time=30):
@@ -32,7 +33,7 @@ class Incapy():
         """
 
         self.model = model_class()
-        self.view = view_class(self.model)
+        self.view = view_class(self.model, anim_speed_const=anim_speed_const, update_weight_time=update_weight_time)
         self.controller = controller_class(self.model, filename,repulsive_const,anim_speed_const,
                                            update_weight_time)
 

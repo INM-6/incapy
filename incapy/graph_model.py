@@ -175,4 +175,5 @@ class GraphModel(IModel):
         self.edge_threshold_mask = mask
         edge_sources = np.compress(self.edge_threshold_mask, self.edges, axis=0).T[0]
         edge_targets = np.compress(self.edge_threshold_mask, self.edges, axis=0).T[1]
+        self._update_view()
 
