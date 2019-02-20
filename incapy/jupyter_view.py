@@ -125,7 +125,7 @@ class JupyterView(IView):
         repeat = widgets.ToggleButton(
             value=False,
             # description='🔁',
-            description='Repeat',
+            description='⮔',
             layout=Layout(width='6em')
         )
 
