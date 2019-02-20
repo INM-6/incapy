@@ -1,8 +1,8 @@
 
-from graph_controller import GraphAlgorithm
-from graph_model import GraphModel
-from jupyter_view import JupyterView
-from load_data import DataLoader
+from incapy.graph_controller import GraphAlgorithm
+from incapy.graph_model import GraphModel
+from incapy.jupyter_view import JupyterView
+from incapy.load_data import DataLoader
 
 
 class Incapy():
@@ -10,10 +10,9 @@ class Incapy():
     User interface for the Incapy class.
 
     """
-
-    def __init__(self, filename='../../data/corr_data.h5', model_class=GraphModel, view_class=JupyterView,
-                 controller_class=GraphAlgorithm, data_loader_class = DataLoader, repulsive_const=1, anim_speed_const=1, update_weight_time=30,
-                 edge_threshold=0.6):
+    # Incapy class needs to control all constants, because they are only passed through here
+    def __init__(self, filename, model_class=GraphModel, view_class=JupyterView, controller_class=GraphAlgorithm,
+                        data_loader_class=DataLoader, repulsive_const=1, anim_speed_const=1, update_weight_time=30):
         """
         Constructor for the Incapy class.
 
@@ -38,18 +37,19 @@ class Incapy():
 
         # Instantiate the classes
         self.model = model_class()
-        self.view = view_class(self.model)
+        self.view = view_class(self.model, anim_speed_const=anim_speed_const, update_weight_time=update_weight_time)
         self.controller = controller_class(self.model, filename, data_loader_class, repulsive_const, anim_speed_const,
-                                           update_weight_time, edge_threshold)
+                                           update_weight_time)
 
-    def show(self):
+    def show(self, edge_threshold=0.6):
         """
         Shows the view and registers for events happening in the view.
 
         :return: The view to be displayed.
 
         """
-
+        # Define all parameters required for display
+        self.controller.set_edge_threshold(edge_threshold)
         # Register for events happening in View
         self.view.add_event_listener(self)
 
@@ -202,7 +202,7 @@ class Incapy():
             self.pause()
         elif msg == 'play':
             self.play()
-        elif msg == 'skip':
+        elif msg == 'next_window':
             self.skip()
         elif msg == 'reset':
             self.reset()
