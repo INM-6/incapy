@@ -122,6 +122,13 @@ class JupyterView(IView):
             indent=False
         )
 
+        repeat = widgets.ToggleButton(
+            value=False,
+            # description='🔁',
+            description='Repeat',
+            layout=Layout(width='6em')
+        )
+
         # Horizontal alignment looks nicer than vertical
         # Could also display each button on its own, causing vertical alignment
         animation_controls = widgets.HBox([play, stop, next, repeat])
