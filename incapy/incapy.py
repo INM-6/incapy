@@ -1,8 +1,8 @@
 
-from incapy.graph_controller import GraphAlgorithm
-from incapy.graph_model import GraphModel
-from incapy.jupyter_view import JupyterView
-from incapy.load_data import DataLoader
+from graph_controller import GraphAlgorithm
+from graph_model import GraphModel
+from jupyter_view import JupyterView
+from load_data import DataLoader
 
 
 class Incapy():
