@@ -146,7 +146,6 @@ class GraphAlgorithm(IController):
         colors_lab[:, 0] = 36
 
         pos = self.loader.positions[:, 1:3]
-        print(pos[0])
 
         colors_lab[:, 1:3] = ((2*f_lab_range*pos[:, 0:2])/num_rows) - f_lab_range
 
