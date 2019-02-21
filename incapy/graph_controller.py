@@ -497,8 +497,8 @@ class GraphAlgorithm(IController):
         displacement *= np.minimum(displacement_length[:, np.newaxis],
                                    np.full_like(displacement_length[:, np.newaxis], self.max_step_size))
 
-        # Now update model with displacment vectors per source vertex
-        self.model.vertex_pos += displacement
+        # Now update new_vertex_positions with displacment vectors per source vertex
+        new_vertex_pos = self.model.vertex_pos + displacement
 
         # Force everything around a common center
         # Sum all positions
@@ -511,9 +511,7 @@ class GraphAlgorithm(IController):
 
         # Move all towards center such that 'middle' of graph eventually becomes equal to center
         # anim_speed_const needs to be bounded here because else the vertices will overshoot the center
-        self.model.vertex_pos = self.model.vertex_pos - diff_to_center[np.newaxis, :] * min(self.anim_speed_const, 1)
+        new_vertex_pos = new_vertex_pos - diff_to_center[np.newaxis, :] * min(self.anim_speed_const, 1)
 
-        # # TODO: Inform model of change
-        # # TODO: DO NOT ACCESS PRIVATE MEMBERS IN OTHER CLASSES
-        self.model._update_view()
-        # self.model.set_positions(next_positions.T)
+        # Set the new vertex positions
+        self.model.set_vertex_pos(new_vertex_pos)

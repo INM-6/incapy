@@ -75,7 +75,6 @@ class JupyterView(IView):
             self.current_window.set_trait('value', value=value)
 
             pass
-            #self.current_window.value = value
 
     def show(self):
         """
@@ -85,17 +84,6 @@ class JupyterView(IView):
             Returns the holoviews map
 
         """
-        # renderer = hv.renderer('bokeh').instance(mode='server')
-        # # renderer.app(self.dynamic_map, show=True, websocket_origin='localhost:8888')
-        # plot = renderer.get_plot(self.dynamic_map, curdoc())
-        # button = Button(label='► Play', width=60)
-        # button.on_click(self.notify_listeners)
-        # self.layout = layout([
-        #     [plot.state],
-        #     [button],
-        # ], sizing_mode='fixed')
-        # curdoc().add_root(self.layout)
-        # show(self.layout, notebook_url='localhost:8888')
 
         from ipywidgets import Layout
         layout = Layout(width='4em')
@@ -200,8 +188,6 @@ class JupyterView(IView):
         with self.out:
             display(self.dynamic_map)
 
-        #return box
-
     def update(self, data):
         """
         Gets the x and y positions of the vertices and updates the plot.
@@ -227,8 +213,6 @@ class JupyterView(IView):
 
         vertex_ids = data[1][1]
 
-        #nodes = hv.Nodes()
-        #edges = hv.EdgePaths(([], []))
         new_data = ((edge_source, edge_target), (pos_x, pos_y, vertex_ids))
         self.pipe.send(new_data)
 
@@ -280,7 +264,6 @@ class NoView(IView):
         pass
 
     def update(self, data):
-        print(id(data[0][0]))
         pass
 
     def _register(self, model):

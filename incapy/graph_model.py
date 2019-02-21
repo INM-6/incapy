@@ -187,3 +187,17 @@ class GraphModel(IModel):
 
         self.edge_threshold_mask = mask
         self._update_view()
+
+    def set_vertex_pos(self, vertex_positions):
+        """
+        Sets the vertex positions.
+
+        :param vertex_positions: list
+            A list consisting of the vertex positions.
+
+        :return: None
+
+        """
+
+        self.vertex_pos = vertex_positions
+        self._update_view()
