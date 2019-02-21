@@ -57,6 +57,8 @@ class JupyterView(IView):
                                                 step=1, orientation='horizontal', disabled=False,
                                                 style={'description_width': '8em'})
 
+        self.speed_animation = None
+
         self.out = widgets.Output(layout={'border': '1px solid black'})
 
     def update_ui(self, msg, value):
@@ -79,6 +81,9 @@ class JupyterView(IView):
         elif msg == 'window_adjust':
             # Set the new value for the maximum number of windows
             self.current_window.set_trait('max', value=value)
+
+        elif msg == 'speed_constant':
+            self.speed_animation.set_trait('value', value=value)
 
     def set_colors(self, colors):
         """
@@ -110,7 +115,7 @@ class JupyterView(IView):
         stop = widgets.Button(description="⏹", layout=layout)
         next = widgets.Button(description="⏭️", layout=layout)
 
-        speed_animation = widgets.FloatSlider(description="Animation speed", value=self.anim_speed_const,
+        self.speed_animation = widgets.FloatSlider(description="Animation speed", value=self.anim_speed_const,
                                               min=0.1, max=3.02, step=0.1, orientation='horizontal', style=slider_style)
 
         time_to_update_weight = widgets.IntSlider(description="Time per window", value=self.update_weight_time, min=0,
@@ -134,7 +139,7 @@ class JupyterView(IView):
         # Horizontal alignment looks nicer than vertical
         # Could also display each button on its own, causing vertical alignment
         animation_controls = widgets.HBox([play, stop, next, repeat])
-        box = widgets.VBox([animation_controls, self.current_window, time_to_update_weight, speed_animation],
+        box = widgets.VBox([animation_controls, self.current_window, time_to_update_weight, self.speed_animation],
                            layout=Layout(justify_content='center'))
         box = widgets.HBox([self.out, box])
         display(box)
@@ -187,7 +192,7 @@ class JupyterView(IView):
         def on_value_change(change):
             self.notify_listeners('speed_change', change['new'])
 
-        speed_animation.observe(on_value_change, names='value')
+        self.speed_animation.observe(on_value_change, names='value')
 
         def time_per_window_change(change):
             self.notify_listeners('update_weight_change', change['new'])

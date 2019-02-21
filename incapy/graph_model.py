@@ -100,6 +100,19 @@ class GraphModel(IModel):
 
         self.update_ui_elements("window_adjust", number_windows)
 
+    def set_speed_constant(self, speed_constant):
+        """
+        Set the speed constant and update the ui.
+
+        :param speed_constant: float
+            Value for the speed constant
+
+        :return: None
+
+        """
+
+        self.update_ui_elements("speed_constant", speed_constant)
+
     def set_positions(self, positions):
         """
         Sets the vertex positions.
@@ -129,6 +142,20 @@ class GraphModel(IModel):
 
         for l in self.listeners:
             l.update_ui(msg, value)
+
+    def set_speed_constant(self, value):
+        """
+        Sets the speed constant and makes sure to update the ui element related to speed_constant.
+
+        :param value: float
+            The speed constant
+
+        :return: None
+
+        """
+
+        self.animation_speed = value
+        self.update_ui_elements('speed_constant', value)
 
     def set_weights(self, weights, window):
         """

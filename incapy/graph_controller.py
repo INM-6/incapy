@@ -131,6 +131,7 @@ class GraphAlgorithm(IController):
         """
 
         self.anim_speed_const = value
+        self.model.set_speed_constant(value)
 
     def set_update_weight_time(self, value):
         """
