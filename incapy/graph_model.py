@@ -102,7 +102,7 @@ class GraphModel(IModel):
 
     def set_speed_constant(self, speed_constant):
         """
-        Set the speed constant and update the ui.
+        Sets the speed constant and updates the ui.
 
         :param speed_constant: float
             Value for the speed constant
@@ -112,6 +112,19 @@ class GraphModel(IModel):
         """
 
         self.update_ui_elements("speed_constant", speed_constant)
+
+    def set_update_weight_time(self, time):
+        """
+        Sets the update_weight time and updates the ui (slider).
+
+        :param time:
+            The time in seconds
+
+        :return: None
+
+        """
+
+        self.update_ui_elements("weight_time", time)
 
     def set_positions(self, positions):
         """

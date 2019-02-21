@@ -146,6 +146,7 @@ class GraphAlgorithm(IController):
 
         # Explicitly NOT reset time that current window has been used
         self.update_weight_time = value
+        self.model.set_update_weight_time(value)
 
     def set_repeat(self, value):
         """

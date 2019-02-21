@@ -58,6 +58,7 @@ class JupyterView(IView):
                                                 style={'description_width': '8em'})
 
         self.speed_animation = None
+        self.time_to_update_weight = None
 
         self.out = widgets.Output(layout={'border': '1px solid black'})
 
@@ -84,6 +85,9 @@ class JupyterView(IView):
 
         elif msg == 'speed_constant':
             self.speed_animation.set_trait('value', value=value)
+
+        elif msg == 'weight_time':
+            self.time_to_update_weight.set_trait('value', value=value)
 
     def set_colors(self, colors):
         """
@@ -118,7 +122,7 @@ class JupyterView(IView):
         self.speed_animation = widgets.FloatSlider(description="Animation speed", value=self.anim_speed_const,
                                               min=0.1, max=3.02, step=0.1, orientation='horizontal', style=slider_style)
 
-        time_to_update_weight = widgets.IntSlider(description="Time per window", value=self.update_weight_time, min=0,
+        self.time_to_update_weight = widgets.IntSlider(description="Time per window", value=self.update_weight_time, min=0,
                                                   max=60, step=1, orientation='horizontal', style=slider_style)
 
         # Currently not use, but checkbox could also be used instead of toggleButton for repeat
@@ -139,7 +143,7 @@ class JupyterView(IView):
         # Horizontal alignment looks nicer than vertical
         # Could also display each button on its own, causing vertical alignment
         animation_controls = widgets.HBox([play, stop, next, repeat])
-        box = widgets.VBox([animation_controls, self.current_window, time_to_update_weight, self.speed_animation],
+        box = widgets.VBox([animation_controls, self.current_window, self.time_to_update_weight, self.speed_animation],
                            layout=Layout(justify_content='center'))
         box = widgets.HBox([self.out, box])
         display(box)
@@ -197,7 +201,7 @@ class JupyterView(IView):
         def time_per_window_change(change):
             self.notify_listeners('update_weight_change', change['new'])
 
-        time_to_update_weight.observe(time_per_window_change, names='value')
+        self.time_to_update_weight.observe(time_per_window_change, names='value')
 
         def current_window_change(change):
             self.notify_listeners('current_window_change', change['new'])
