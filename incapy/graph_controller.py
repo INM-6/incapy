@@ -314,6 +314,10 @@ class GraphAlgorithm(IController):
             if curr_time - self.current_window_time > self.update_weight_time:
                 if self.update_weight_time != 0:
                     self.update_weights()
+                # Note: Needs to be set so if slider that specifies time per window is moved away from 0,
+                # the window will not be switched immediately!!! So time needs to be around 0 at any moment
+                # when self.update_weight_time is 0
+                self.current_window_time = curr_time
 
             with self.mutex:
                 # The function to calculate the new positions
