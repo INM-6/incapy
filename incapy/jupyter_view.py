@@ -2,7 +2,7 @@
 import holoviews as hv
 from holoviews import opts
 from holoviews.streams import Pipe
-from iview import IView
+from .iview import IView
 from IPython.display import display
 import ipywidgets as widgets
 
