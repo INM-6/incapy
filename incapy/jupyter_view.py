@@ -48,7 +48,6 @@ class JupyterView(IView):
         opts.defaults(opts.Graph(width=400, height=400))
         self.dynamic_map.opts(padding=0.5, tools=['box_select', 'lasso_select', 'tap'], xaxis=None, yaxis=None)\
             .opts(opts.Graph(color_index='index', cmap=['#ff0000', '#00ff00']*50))
-        #.options(color='index', cmap='Category10')# xaxis=None, yaxis=None,
 
         # Register the model
         self._register(model)
@@ -61,20 +60,34 @@ class JupyterView(IView):
         self.out = widgets.Output(layout={'border': '1px solid black'})
 
     def update_ui(self, msg, value):
-        if msg == 'window_change':
-            self.current_window.set_trait('value', value=value)
+        """
+        Updates the ui elements of the view.
 
-            pass
-            # self.current_window.value = value
+        :param msg: string
+            The message to see what changed.
+        :param value:
+            The changed value
+
+        :return: None
+
+        """
+
+        if msg == 'window_change':
+            # Set the new value of the window_change
+            self.current_window.set_trait('value', value=value)
 
     def set_colors(self, colors):
+        """
+        Sets the colors of the dynamic map
+
+        :param colors: list
+            A list of the colors (in hex), where the first element is for the first node, .. etc
+
+        :return: None
+
+        """
+
         self.dynamic_map.opts(opts.Graph(color_index='index', cmap=colors))
-
-    def update_ui(self, msg, value):
-        if msg == 'window_change':
-            self.current_window.set_trait('value', value=value)
-
-            pass
 
     def show(self):
         """
@@ -99,6 +112,7 @@ class JupyterView(IView):
         time_to_update_weight = widgets.IntSlider(description="Time per window", value=self.update_weight_time, min=0,
                                                   max=60, step=1, orientation='horizontal', style=slider_style)
 
+        # Currently not use, but checkbox could also be used instead of toggleButton for repeat
         repeat = widgets.Checkbox(
             value=False,
             description='Repeat',

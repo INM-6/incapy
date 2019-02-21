@@ -186,6 +186,7 @@ class GraphAlgorithm(IController):
 
         """
 
+        # First, get colors in LAB and then convert to RGB hex colors to pass to the model.
         # TODO better way to calculate number of rows?
         num_rows = 10#math.ceil(math.sqrt(len(self.loader.vertex_ids)))
 
@@ -194,7 +195,6 @@ class GraphAlgorithm(IController):
         f_lab_range = 100.0
 
         colors_lab = np.ndarray((100, 3), dtype=float)
-        colors_rgb = np.empty_like(colors_lab)
         colors_lab[:, 0] = 36
 
         pos = self.loader.positions[:, 1:3]
@@ -202,40 +202,12 @@ class GraphAlgorithm(IController):
         colors_lab[:, 1:3] = ((2*f_lab_range*pos[:, 0:2])/num_rows) - f_lab_range
 
         colors_res = []
+        # TODO not always 100?
         for i in range(100):
             currcol = colors_lab[i]
             lab = LabColor(currcol[0], currcol[1], currcol[2])
             res = convert_color(lab, sRGBColor)
             colors_res.append(res.get_rgb_hex())
-
-        # Convert to RGB
-        y = colors_lab[:, 0]*0.0086207 + 0.1379310
-        x = colors_lab[:, 1]*0.002 + y
-        z = colors_lab[:, 2]*(-0.005) + y
-
-        xmask = x>0.2068966
-
-        x[xmask] = (x[xmask])**3
-        x[np.logical_not(xmask)] = (x[np.logical_not(xmask)]*0.1284185)-0.0177129
-
-        ymask = colors_lab[:, 0] > 8
-
-        y[ymask] = (y[ymask])**3
-        y[np.logical_not(ymask)] = (colors_lab[:, 0][np.logical_not(ymask)]) * 0.0011070
-
-        zmask = z>0.2068966
-
-        z[zmask] = z[zmask]**3
-        z[np.logical_not(zmask)] = z[np.logical_not(zmask)]* 0.1284185 - 0.0177129
-
-        colors_rgb[:, 0] = 3.0803420 * x - 1.5373990 * y - 0.5429430 * z
-        colors_rgb[:, 1] = -0.9211784 * x + 1.8759300 * y + 0.0452484 * z
-        colors_rgb[:, 2] = 0.0528813 * x - 0.2040112 * y + 1.1511299 * z
-
-
-        cmask = colors_rgb > 0.0031308
-        colors_rgb[cmask] = (colors_rgb[cmask] **0.4166667)*1.055 - 0.055
-        colors_rgb[np.logical_not(cmask)] = colors_rgb[np.logical_not(cmask)] * 12.92
 
         # Set the colors in the model
         self.model.set_colors(colors_res)
