@@ -172,6 +172,7 @@ class GraphAlgorithm(IController):
         self.model.set_edges(self.loader.edge_ids)
         self.model.set_vertex_ids(self.loader.vertex_ids)
         self.model.set_positions(self.loader.positions[:, 1:3])
+        self.model.set_number_windows(self.loader.number_windows)
 
     def calculate_weights(self):
         # calculate actual weights from x_corr

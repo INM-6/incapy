@@ -52,8 +52,8 @@ class JupyterView(IView):
         # Register the model
         self._register(model)
 
-        # TODO get min and max from graph controller!!
-        self.current_window = widgets.IntSlider(description="Current window", value=1, min=0, max=12,
+        # TODO get min and max from graph controller!! -> will be updated as soon as loader is loaded! default is 30
+        self.current_window = widgets.IntSlider(description="Current window", value=1, min=0, max=30,
                                                 step=1, orientation='horizontal', disabled=False,
                                                 style={'description_width': '8em'})
 
@@ -75,6 +75,10 @@ class JupyterView(IView):
         if msg == 'window_change':
             # Set the new value of the window_change
             self.current_window.set_trait('value', value=value)
+
+        elif msg == 'window_adjust':
+            # Set the new value for the maximum number of windows
+            self.current_window.set_trait('max', value=value)
 
     def set_colors(self, colors):
         """

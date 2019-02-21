@@ -35,7 +35,7 @@ class Incapy():
 
         """
 
-        # Instantiate the classes
+        # Instantiate the classes, NOTE: do not change order
         self.model = model_class()
         self.view = view_class(self.model, anim_speed_const=anim_speed_const, update_weight_time=update_weight_time)
         self.controller = controller_class(self.model, filename, data_loader_class, repulsive_const, anim_speed_const,

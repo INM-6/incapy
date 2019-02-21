@@ -38,6 +38,9 @@ class GraphModel(IModel):
         # Will be filled as boolean array indicating which edges surpass the threshold
         self.edge_threshold_mask = []
 
+        # The number of windows
+        self.number_windows = None
+
     def add_listener(self, view):
         """
         Adds the view to the list of listeners.
@@ -83,6 +86,19 @@ class GraphModel(IModel):
         self.hex_colors = colors
         for l in self.listeners:
             l.set_colors(self.hex_colors)
+
+    def set_number_windows(self, number_windows):
+        """
+        Update the ui to the specified number of windows.
+
+        :param number_windows: int
+            The number of windows in the data
+
+        :return: None
+
+        """
+
+        self.update_ui_elements("window_adjust", number_windows)
 
     def set_positions(self, positions):
         """
