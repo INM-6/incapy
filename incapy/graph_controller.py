@@ -56,16 +56,16 @@ class GraphAlgorithm(IController):
         # Populate the model with the data
         self.populate_model()
 
-        # NOTE: needs to be called before edge_threshold and edge_threshold needs to be called before update_weights()
-        # current_frame at -1 in the very beginning because at first call of update_weights 1 is added
+        # NOTE: edge_threshold needs to be set before calling update weights
         self.current_frame = -1
 
         # Default value for threshold that determines which edges should be shown
         self.edge_threshold = 0.6
-        self.set_edge_threshold(self.edge_threshold)
 
         # Sets the weights
-        self.update_weights()
+        self.update_weights(0)
+
+        self.set_edge_threshold(self.edge_threshold)
 
         # Constants needed for the force-directed layout algorithm
         self.natural_spring_length = None
