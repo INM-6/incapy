@@ -5,6 +5,8 @@ from holoviews.streams import Pipe
 from .iview import IView
 from IPython.display import display
 import ipywidgets as widgets
+from ipywidgets import Layout
+
 
 hv.extension('bokeh')
 
@@ -43,39 +45,104 @@ class JupyterView(IView):
         # Holoviews Dynamic map with a stream that gets data from the pipe
         self.dynamic_map = hv.DynamicMap(hv.Graph, streams=[self.pipe])
 
+        self.init_sliders()
+
         # TODO change padding size accordingly
         # Options for the displayed map
         opts.defaults(opts.Graph(width=400, height=400))
         self.dynamic_map.opts(padding=0.5, tools=['box_select', 'lasso_select', 'tap'], xaxis=None, yaxis=None)\
             .opts(opts.Graph(color_index='index', cmap=['#ff0000', '#00ff00']*50))
-        #.options(color='index', cmap='Category10')# xaxis=None, yaxis=None,
 
         # Register the model
         self._register(model)
 
-        # TODO get min and max from graph controller!!
-        self.current_window = widgets.IntSlider(description="Current window", value=1, min=0, max=12,
+        # The sliders, initalize them
+        self.current_window = None
+        self.speed_animation = None
+        self.time_to_update_weight = None
+        self.out = None
+        self.init_sliders()
+
+    def init_sliders(self):
+        """
+        Initialize the sliders for the graphical user interface.
+
+        :return: None
+
+        """
+
+        slider_style = {'description_width': '8em'}
+
+        # default values, once the data is loaded, the values will be adjusted
+        self.current_window = widgets.IntSlider(description="Current window", value=1, min=0, max=30,
                                                 step=1, orientation='horizontal', disabled=False,
                                                 style={'description_width': '8em'})
 
         self.out = widgets.Output(layout={'border': '1px solid black'})
 
+        self.speed_animation = widgets.FloatSlider(description="Animation speed", value=self.anim_speed_const,
+                                                   min=0.1, max=3.02, step=0.1, orientation='horizontal',
+                                                   style=slider_style)
+
+        self.time_to_update_weight = widgets.IntSlider(description="Time per window", value=self.update_weight_time,
+                                                       min=0, max=60, step=1, orientation='horizontal',
+                                                       style=slider_style)
+
+        # add listeners to the sliders when the values changes
+        def on_value_change(change):
+            self.notify_listeners('speed_change', change['new'])
+
+        self.speed_animation.observe(on_value_change, names='value')
+
+        def time_per_window_change(change):
+            self.notify_listeners('update_weight_change', change['new'])
+
+        self.time_to_update_weight.observe(time_per_window_change, names='value')
+
+        def current_window_change(change):
+            self.notify_listeners('current_window_change', change['new'])
+
+        self.current_window.observe(current_window_change, names='value')
+
     def update_ui(self, msg, value):
+        """
+        Updates the ui elements of the view.
+
+        :param msg: string
+            The message to see what changed.
+        :param value:
+            The changed value
+
+        :return: None
+
+        """
+
         if msg == 'window_change':
+            # Set the new value of the window_change
             self.current_window.set_trait('value', value=value)
 
-            pass
-            # self.current_window.value = value
+        elif msg == 'window_adjust':
+            # Set the new value for the maximum number of windows
+            self.current_window.set_trait('max', value=value)
+
+        elif msg == 'speed_constant':
+            self.speed_animation.set_trait('value', value=value)
+
+        elif msg == 'weight_time':
+            self.time_to_update_weight.set_trait('value', value=value)
 
     def set_colors(self, colors):
+        """
+        Sets the colors of the dynamic map
+
+        :param colors: list
+            A list of the colors (in hex), where the first element is for the first node, .. etc
+
+        :return: None
+
+        """
+
         self.dynamic_map.opts(opts.Graph(color_index='index', cmap=colors))
-
-    def update_ui(self, msg, value):
-        if msg == 'window_change':
-            self.current_window.set_trait('value', value=value)
-
-            pass
-            #self.current_window.value = value
 
     def show(self):
         """
@@ -85,32 +152,14 @@ class JupyterView(IView):
             Returns the holoviews map
 
         """
-        # renderer = hv.renderer('bokeh').instance(mode='server')
-        # # renderer.app(self.dynamic_map, show=True, websocket_origin='localhost:8888')
-        # plot = renderer.get_plot(self.dynamic_map, curdoc())
-        # button = Button(label='► Play', width=60)
-        # button.on_click(self.notify_listeners)
-        # self.layout = layout([
-        #     [plot.state],
-        #     [button],
-        # ], sizing_mode='fixed')
-        # curdoc().add_root(self.layout)
-        # show(self.layout, notebook_url='localhost:8888')
 
-        from ipywidgets import Layout
         layout = Layout(width='4em')
-        slider_style = {'description_width': '8em'}
 
         play = widgets.Button(description="▶️", layout=layout)
         stop = widgets.Button(description="⏹", layout=layout)
         next = widgets.Button(description="⏭️", layout=layout)
 
-        speed_animation = widgets.FloatSlider(description="Animation speed", value=self.anim_speed_const,
-                                              min=0.1, max=3.02, step=0.1, orientation='horizontal', style=slider_style)
-
-        time_to_update_weight = widgets.IntSlider(description="Time per window", value=self.update_weight_time, min=0,
-                                                  max=60, step=1, orientation='horizontal', style=slider_style)
-
+        # Currently not use, but checkbox could also be used instead of toggleButton for repeat
         repeat = widgets.Checkbox(
             value=False,
             description='Repeat',
@@ -128,7 +177,7 @@ class JupyterView(IView):
         # Horizontal alignment looks nicer than vertical
         # Could also display each button on its own, causing vertical alignment
         animation_controls = widgets.HBox([play, stop, next, repeat])
-        box = widgets.VBox([animation_controls, self.current_window, time_to_update_weight, speed_animation],
+        box = widgets.VBox([animation_controls, self.current_window, self.time_to_update_weight, self.speed_animation],
                            layout=Layout(justify_content='center'))
         box = widgets.HBox([self.out, box])
         display(box)
@@ -178,29 +227,13 @@ class JupyterView(IView):
 
         play.on_click(start_action)
 
-        def on_value_change(change):
-            self.notify_listeners('speed_change', change['new'])
-
-        speed_animation.observe(on_value_change, names='value')
-
-        def time_per_window_change(change):
-            self.notify_listeners('update_weight_change', change['new'])
-
-        time_to_update_weight.observe(time_per_window_change, names='value')
-
-        def current_window_change(change):
-            self.notify_listeners('current_window_change', change['new'])
-
-        self.current_window.observe(current_window_change, names='value')
-
         def repeat_change(change):
             self.notify_listeners('repeat', change['new'])
 
         repeat.observe(repeat_change, names='value')
+
         with self.out:
             display(self.dynamic_map)
-
-        #return box
 
     def update(self, data):
         """
@@ -227,8 +260,6 @@ class JupyterView(IView):
 
         vertex_ids = data[1][1]
 
-        #nodes = hv.Nodes()
-        #edges = hv.EdgePaths(([], []))
         new_data = ((edge_source, edge_target), (pos_x, pos_y, vertex_ids))
         self.pipe.send(new_data)
 
@@ -280,7 +311,6 @@ class NoView(IView):
         pass
 
     def update(self, data):
-        print(id(data[0][0]))
         pass
 
     def _register(self, model):

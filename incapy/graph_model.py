@@ -1,3 +1,4 @@
+
 from .imodel import IModel
 import numpy as np
 
@@ -37,6 +38,9 @@ class GraphModel(IModel):
         # Will be filled as boolean array indicating which edges surpass the threshold
         self.edge_threshold_mask = []
 
+        # The number of windows
+        self.number_windows = None
+
     def add_listener(self, view):
         """
         Adds the view to the list of listeners.
@@ -69,9 +73,58 @@ class GraphModel(IModel):
                       (np.array(self.vertex_pos), self.vertex_ids)))
 
     def set_colors(self, colors):
+        """
+        Sets the colors in the views.
+
+        :param colors: 'list'
+            A list of the color attributes of all the nodes.
+
+        :return: None
+
+        """
+
         self.hex_colors = colors
         for l in self.listeners:
             l.set_colors(self.hex_colors)
+
+    def set_number_windows(self, number_windows):
+        """
+        Update the ui to the specified number of windows.
+
+        :param number_windows: int
+            The number of windows in the data
+
+        :return: None
+
+        """
+
+        self.update_ui_elements("window_adjust", number_windows)
+
+    def set_speed_constant(self, speed_constant):
+        """
+        Sets the speed constant and updates the ui.
+
+        :param speed_constant: float
+            Value for the speed constant
+
+        :return: None
+
+        """
+
+        self.update_ui_elements("speed_constant", speed_constant)
+
+    def set_update_weight_time(self, time):
+        """
+        Sets the update_weight time and updates the ui (slider).
+
+        :param time:
+            The time in seconds
+
+        :return: None
+
+        """
+
+        self.update_ui_elements("weight_time", time)
 
     def set_positions(self, positions):
         """
@@ -88,8 +141,34 @@ class GraphModel(IModel):
         self._update_view()
 
     def update_ui_elements(self, msg, value=None):
+        """
+        Updates the ui_elements in the views.
+
+        :param msg: string
+            The message to see what element changed
+        :param value:
+            The changed value in the view.
+
+        :return: None
+
+        """
+
         for l in self.listeners:
             l.update_ui(msg, value)
+
+    def set_speed_constant(self, value):
+        """
+        Sets the speed constant and makes sure to update the ui element related to speed_constant.
+
+        :param value: float
+            The speed constant
+
+        :return: None
+
+        """
+
+        self.animation_speed = value
+        self.update_ui_elements('speed_constant', value)
 
     def set_weights(self, weights, window):
         """
@@ -103,7 +182,6 @@ class GraphModel(IModel):
 
         self.edge_weights = weights
         self.update_ui_elements("window_change", window)
-        #self._update_view()
 
     # might not be needed
     def set_vertex_ids(self, vertex_ids):
@@ -151,29 +229,31 @@ class GraphModel(IModel):
 
         return self.edge_weights
 
-
-    def set_time_weight_update(self, time_to_update_weights):
-        print(time_to_update_weights)
-        self.time_to_update_weights = time_to_update_weights
-
-    def set_animation_speed(self, animation_speed):
-        self.animation_speed = animation_speed
-
-    def get_time_weight_update(self):
-        return self.time_to_update_weights
-
-    def get_animation_speed(self):
-        return self.animation_speed
-
-    def set_repeat(self, value):
-        self.repeat = value
-
-    def get_repeat(self):
-        return self.repeat
-
     def set_edge_threshold_mask(self, mask):
+        """
+        Sets the edge threshold mask.
+
+        :param mask: 'numpy-array'
+            Mask which marks all the edges that will be displayed
+            according to the edge threshold.
+
+        :return: None
+
+        """
+
         self.edge_threshold_mask = mask
-        edge_sources = np.compress(self.edge_threshold_mask, self.edges, axis=0).T[0]
-        edge_targets = np.compress(self.edge_threshold_mask, self.edges, axis=0).T[1]
         self._update_view()
 
+    def set_vertex_pos(self, vertex_positions):
+        """
+        Sets the vertex positions.
+
+        :param vertex_positions: list
+            A list consisting of the vertex positions.
+
+        :return: None
+
+        """
+
+        self.vertex_pos = vertex_positions
+        self._update_view()

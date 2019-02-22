@@ -1,4 +1,5 @@
 
+
 import numpy as np
 import h5py as h5
 
@@ -32,6 +33,9 @@ class DataLoader:
 
         # Weights is an upper triangular matrix consisting of the weights between the vertices
         self.weights = None
+
+        # An integer consisting of the number of windows
+        self.number_windows = None
 
     def load_data(self, filename):
         """
@@ -82,6 +86,9 @@ class DataLoader:
         num_vert = len(self.vertex_ids)
         self.weights = np.zeros((self.x_corr.shape[0]-1, num_vert, num_vert), dtype='float64')
         upper = np.triu_indices(num_vert)
+
+        # The number of windows
+        self.number_windows = 12
 
         # TODO: Optimize using numpy, could remove for loop
         for timestamp in range(self.x_corr.shape[0]-1):
