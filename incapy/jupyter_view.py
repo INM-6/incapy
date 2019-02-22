@@ -5,6 +5,8 @@ from holoviews.streams import Pipe
 from .iview import IView
 from IPython.display import display
 import ipywidgets as widgets
+from ipywidgets import Layout
+
 
 hv.extension('bokeh')
 
@@ -43,6 +45,8 @@ class JupyterView(IView):
         # Holoviews Dynamic map with a stream that gets data from the pipe
         self.dynamic_map = hv.DynamicMap(hv.Graph, streams=[self.pipe])
 
+        self.init_sliders()
+
         # TODO change padding size accordingly
         # Options for the displayed map
         opts.defaults(opts.Graph(width=400, height=400))
@@ -52,15 +56,53 @@ class JupyterView(IView):
         # Register the model
         self._register(model)
 
-        # TODO get min and max from graph controller!! -> will be updated as soon as loader is loaded! default is 30
+        # The sliders, initalize them
+        self.current_window = None
+        self.speed_animation = None
+        self.time_to_update_weight = None
+        self.out = None
+        self.init_sliders()
+
+    def init_sliders(self):
+        """
+        Initialize the sliders for the graphical user interface.
+
+        :return: None
+
+        """
+
+        slider_style = {'description_width': '8em'}
+
+        # default values, once the data is loaded, the values will be adjusted
         self.current_window = widgets.IntSlider(description="Current window", value=1, min=0, max=30,
                                                 step=1, orientation='horizontal', disabled=False,
                                                 style={'description_width': '8em'})
 
-        self.speed_animation = None
-        self.time_to_update_weight = None
-
         self.out = widgets.Output(layout={'border': '1px solid black'})
+
+        self.speed_animation = widgets.FloatSlider(description="Animation speed", value=self.anim_speed_const,
+                                                   min=0.1, max=3.02, step=0.1, orientation='horizontal',
+                                                   style=slider_style)
+
+        self.time_to_update_weight = widgets.IntSlider(description="Time per window", value=self.update_weight_time,
+                                                       min=0, max=60, step=1, orientation='horizontal',
+                                                       style=slider_style)
+
+        # add listeners to the sliders when the values changes
+        def on_value_change(change):
+            self.notify_listeners('speed_change', change['new'])
+
+        self.speed_animation.observe(on_value_change, names='value')
+
+        def time_per_window_change(change):
+            self.notify_listeners('update_weight_change', change['new'])
+
+        self.time_to_update_weight.observe(time_per_window_change, names='value')
+
+        def current_window_change(change):
+            self.notify_listeners('current_window_change', change['new'])
+
+        self.current_window.observe(current_window_change, names='value')
 
     def update_ui(self, msg, value):
         """
@@ -111,19 +153,11 @@ class JupyterView(IView):
 
         """
 
-        from ipywidgets import Layout
         layout = Layout(width='4em')
-        slider_style = {'description_width': '8em'}
 
         play = widgets.Button(description="▶️", layout=layout)
         stop = widgets.Button(description="⏹", layout=layout)
         next = widgets.Button(description="⏭️", layout=layout)
-
-        self.speed_animation = widgets.FloatSlider(description="Animation speed", value=self.anim_speed_const,
-                                              min=0.1, max=3.02, step=0.1, orientation='horizontal', style=slider_style)
-
-        self.time_to_update_weight = widgets.IntSlider(description="Time per window", value=self.update_weight_time, min=0,
-                                                  max=60, step=1, orientation='horizontal', style=slider_style)
 
         # Currently not use, but checkbox could also be used instead of toggleButton for repeat
         repeat = widgets.Checkbox(
@@ -193,25 +227,11 @@ class JupyterView(IView):
 
         play.on_click(start_action)
 
-        def on_value_change(change):
-            self.notify_listeners('speed_change', change['new'])
-
-        self.speed_animation.observe(on_value_change, names='value')
-
-        def time_per_window_change(change):
-            self.notify_listeners('update_weight_change', change['new'])
-
-        self.time_to_update_weight.observe(time_per_window_change, names='value')
-
-        def current_window_change(change):
-            self.notify_listeners('current_window_change', change['new'])
-
-        self.current_window.observe(current_window_change, names='value')
-
         def repeat_change(change):
             self.notify_listeners('repeat', change['new'])
 
         repeat.observe(repeat_change, names='value')
+
         with self.out:
             display(self.dynamic_map)
 
