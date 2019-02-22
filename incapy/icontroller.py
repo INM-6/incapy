@@ -13,7 +13,7 @@ class IController(ABC):
         pass
 
     @abstractmethod
-    def update_weights(self):
+    def next_window(self):
         # sends the data to the model and update the matrix every few seconds
         raise NotImplementedError()
 
@@ -23,7 +23,15 @@ class IController(ABC):
 
     @abstractmethod
     def stop_iteration(self):
-        raise NotImplementedError
+        raise NotImplementedError()
+
+    @abstractmethod
+    def pause_iteration(self):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def continue_iteration(self):
+        raise NotImplementedError()
 
     @abstractmethod
     def _iterate(self):

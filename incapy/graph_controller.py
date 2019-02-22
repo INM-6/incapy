@@ -57,13 +57,13 @@ class GraphAlgorithm(IController):
         self.populate_model()
 
         # NOTE: edge_threshold needs to be set before calling update weights
-        self.current_frame = -1
+        self.current_window = -1
 
         # Default value for threshold that determines which edges should be shown
         self.edge_threshold = 0.6
 
         # Sets the weights
-        self.update_weights(0)
+        self.next_window(0)
 
         self.set_edge_threshold(self.edge_threshold)
 
@@ -110,9 +110,9 @@ class GraphAlgorithm(IController):
             # x_corr is supposed to be lower than given threshold
             # Thus, if sign of threshold is inverted, comparison needs to be inverted as well
             if inverse_sign:
-                mask = self.loader.x_corr[self.current_frame + 1] > weight_threshold
+                mask = self.loader.x_corr[self.current_window + 1] > weight_threshold
             else:
-                mask = self.loader.x_corr[self.current_frame + 1] < weight_threshold
+                mask = self.loader.x_corr[self.current_window + 1] < weight_threshold
             self.model.set_edge_threshold_mask(mask)
         # Nothing to do after last weight matrix reached
         # TODO: Implement stop or loop behavior after last matrix
@@ -215,24 +215,27 @@ class GraphAlgorithm(IController):
         # Set the colors in the model
         self.model.set_colors(colors_res)
 
-    def update_weights(self, value=None):
+    def next_window(self, value=None):
         """
-        Updates the weights with the current_frame weights from the loader.
+        Updates the weights with the current_window weights from the loader.
+
+        :param: value
+            The window to be loaded
 
         :return: None
 
         """
 
         # XXX Prevent deadlock due to notification upon change of slider
-        if value == self.current_frame:
+        if value == self.current_window:
             return
         if value is None:
-            self.current_frame += 1
-            curr_window = self.current_frame
+            self.current_window += 1
+            curr_window = self.current_window
 
         else:
             curr_window = value
-            self.current_frame = value
+            self.current_window = value
         # sends the data to the model and update the matrix every few seconds
         try:
             with self.mutex:
@@ -244,7 +247,7 @@ class GraphAlgorithm(IController):
                 self.current_window_time = time.time()
         except IndexError:
             if self.repeat:
-                self.update_weights(0)
+                self.next_window(0)
 
         # TODO introduce error handling after last iteration of correlations
         # maybe call stop_iteration
@@ -258,7 +261,7 @@ class GraphAlgorithm(IController):
         """
 
         self.populate_model()
-        self.current_frame = -1
+        self.current_window = -1
         self.wait_event.clear()
         self.stop = False
 
@@ -287,7 +290,7 @@ class GraphAlgorithm(IController):
         last_time = time.time()
         self.current_window_time = last_time
 
-        self.update_weights(0)
+        self.next_window(0)
         self.init_algorithm()
 
         # TODO: Maybe catch Keyboard interrupt to output position
@@ -313,7 +316,7 @@ class GraphAlgorithm(IController):
             # Load the new window, if the update_weight_time is reached
             if curr_time - self.current_window_time > self.update_weight_time:
                 if self.update_weight_time != 0:
-                    self.update_weights()
+                    self.next_window()
                 # Note: Needs to be set so if slider that specifies time per window is moved away from 0,
                 # the window will not be switched immediately!!! So time needs to be around 0 at any moment
                 # when self.update_weight_time is 0

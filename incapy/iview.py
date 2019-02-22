@@ -24,6 +24,10 @@ class IView(ABC):
     def update(self, data):
         raise NotImplementedError()
 
+    @abstractmethod
+    def update_ui(self, msg, value):
+        raise NotImplementedError
+
     # Notify everyone who needs to know about any events
     @abstractmethod
     def add_event_listener(self, listener):

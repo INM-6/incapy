@@ -35,4 +35,8 @@ class IModel(ABC):
 
     @abstractmethod
     def set_edges(self, edges):
-        raise NotImplementedError
+        raise NotImplementedError()
+
+    @abstractmethod
+    def set_edge_threshold_mask(self, mask):
+        raise NotImplementedError()

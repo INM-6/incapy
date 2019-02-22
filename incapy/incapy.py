@@ -12,7 +12,7 @@ class Incapy():
     """
     # Incapy class needs to control all constants, because they are only passed through here
     def __init__(self, filename, model_class=GraphModel, view_class=JupyterView, controller_class=GraphAlgorithm,
-                        data_loader_class=DataLoader, repulsive_const=1, anim_speed_const=1, update_weight_time=30):
+                 data_loader_class=DataLoader, repulsive_const=1, anim_speed_const=1, time_per_window=30):
         """
         Constructor for the Incapy class.
 
@@ -37,9 +37,9 @@ class Incapy():
 
         # Instantiate the classes, NOTE: do not change order
         self.model = model_class()
-        self.view = view_class(self.model, anim_speed_const=anim_speed_const, update_weight_time=update_weight_time)
+        self.view = view_class(self.model, anim_speed_const=anim_speed_const, update_weight_time=time_per_window)
         self.controller = controller_class(self.model, filename, data_loader_class, repulsive_const, anim_speed_const,
-                                           update_weight_time)
+                                           time_per_window)
 
     def show(self, edge_threshold=0.6):
         """
@@ -115,7 +115,7 @@ class Incapy():
 
         """
 
-        self.controller.update_weights()
+        self.controller.next_window()
 
     def reset(self):
         """
@@ -140,7 +140,7 @@ class Incapy():
 
         self.controller.set_anim_speed_const(value)
 
-    def update_weight_change(self, value):
+    def time_per_window_change(self, value):
         """
         Sets the time to load the next window to 'value'.
 
@@ -164,7 +164,7 @@ class Incapy():
 
         """
 
-        self.controller.update_weights(value)
+        self.controller.next_window(value)
 
     def set_repeat(self, value):
         """
@@ -209,7 +209,7 @@ class Incapy():
         elif msg == 'speed_change':
             self.change_speed(value)
         elif msg == 'update_weight_change':
-            self.update_weight_change(value)
+            self.time_per_window_change(value)
         elif msg == 'current_window_change':
             self.update_window(value)
         elif msg == 'repeat':
