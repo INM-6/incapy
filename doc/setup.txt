@@ -1,0 +1,14 @@
+Dependencies:
+
+	Python packages:
+		- jupyter
+		- jupyterlab
+		- numpy
+		- holoviews
+		- bokeh
+		- h5py
+		- colormath
+	
+	Jupyter Lab extensions (install using jupyter labextension install):
+		- @pyviz/jupyterlab_pyviz
+		- @jupyter-widgets/jupyterlab-manager
