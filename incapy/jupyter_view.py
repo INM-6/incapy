@@ -50,8 +50,9 @@ class JupyterView(IView):
         # TODO change padding size accordingly
         # Options for the displayed map
         opts.defaults(opts.Graph(width=400, height=400))
-        self.dynamic_map.opts(padding=0.5, tools=['box_select', 'lasso_select', 'tap'], xaxis=None, yaxis=None)\
-            .opts(opts.Graph(color_index='index', cmap=['#ff0000', '#00ff00']*50))
+        self.dynamic_map.opts(padding=0.5, tools=['box_select', 'lasso_select', 'tap', 'hover'],
+                              xaxis=None, yaxis=None).opts(opts.Graph(color_index='index',
+                                                            cmap=['#ff0000', '#00ff00']*50))
 
         # Register the model
         self._register(model)
@@ -246,6 +247,8 @@ class JupyterView(IView):
 
         """
 
+        vertex_ids = data[1][1]
+
         # TODO see if library function in holoviews is available with option to display edges or not
         try:
             pos_x = data[1][0].T[0]
@@ -257,10 +260,11 @@ class JupyterView(IView):
             pos_y = []
             edge_source = []
             edge_target = []
+            vertex_ids = []
 
-        vertex_ids = data[1][1]
+        nodes = hv.Nodes((pos_x, pos_y, vertex_ids))
 
-        new_data = ((edge_source, edge_target), (pos_x, pos_y, vertex_ids))
+        new_data = ((edge_source, edge_target), nodes)
         self.pipe.send(new_data)
 
     def _register(self, model):
