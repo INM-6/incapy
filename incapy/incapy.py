@@ -41,7 +41,7 @@ class Incapy():
         self.controller = controller_class(self.model, filename, data_loader_class, repulsive_const, anim_speed_const,
                                            time_per_window)
 
-    def show(self, edge_threshold=0.6):
+    def show(self, edge_threshold=0.4):
         """
         Shows the view and registers for events happening in the view.
 

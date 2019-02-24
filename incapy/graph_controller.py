@@ -103,16 +103,11 @@ class GraphAlgorithm(IController):
         if threshold is not None:
             # Use that threshold
             self.edge_threshold = threshold
-        # 1-threshold is conversion function from xcorr to weight
-        # Implemented in DataLoader
         try:
-            weight_threshold, inverse_sign = self.loader.x_corr_to_weight(self.edge_threshold)
-            # x_corr is supposed to be lower than given threshold
-            # Thus, if sign of threshold is inverted, comparison needs to be inverted as well
-            if inverse_sign:
-                mask = self.loader.x_corr[self.current_window + 1] > weight_threshold
-            else:
-                mask = self.loader.x_corr[self.current_window + 1] < weight_threshold
+            # Check directly from given values, without any transformation
+            # Can be changed to use transformed weights instead, if it becomes necessary
+            # to remove x_corr from memory
+            mask = self.loader.x_corr[self.current_window + 1] > self.edge_threshold
             self.model.set_edge_threshold_mask(mask)
         # Nothing to do after last weight matrix reached
         # TODO: Implement stop or loop behavior after last matrix
