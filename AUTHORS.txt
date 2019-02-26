@@ -1,0 +1,8 @@
+Authors and contributors
+
+Daniel Zielasko (Virtual Reality and Immersive Visualisation, RWTH Aachen)
+Benjamin Weyers (Department of Computer Studies/Business Informatics, Uni Trier)
+Michael Denker (INM-6, Forschungszentrum Jülich)
+Tabea Kirchner (JSC, Forschungszentrum Jülich)
+Björn Müller (INM-6, Forschungszentrum Jülich)
+Alexander Kobusch (INM-1, Forschungszentrum Jülich)
