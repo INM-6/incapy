@@ -1,9 +1,10 @@
 from .graph_controller import GraphAlgorithm
 
 import threading
+import os
 import numpy as np
 import time
-
+from mpi4py import MPI
 
 class MPI_Controller(GraphAlgorithm):
 
@@ -80,16 +81,37 @@ class MPI_Controller(GraphAlgorithm):
         self.data_received_event.clear()
         # self.raw_corr = None
 
+        self.comm = MPI.COMM_WORLD
+        rank = self.comm.Get_rank()
+
+
+
     def start_mpi_thread(self):
+
+        # Init connection
+        fport_path = "trans_tvb_port_in.txt"
+        while not os.path.exists(fport_path):
+            pass
+        fport = open(fport_path, "r")
+        port = fport.read()
+        fport.close()
+
+        self.sim_comm = self.comm.Connect(port, MPI.INFO_NULL, root=0)
+
+        rank_sim = self.sim_comm.Get_rank()
 
         mpi_thread = threading.Thread(target=self.thread_runnable)
         mpi_thread.start()
 
     def thread_runnable(self):
 
+        data = np.empty((len(self.model.vertex_ids), len(self.model.vertex_ids)))
+
         while True:
-            time.sleep(0.05)
-            self.set_matrix_from_mpi()
+            status = None
+            self.sim_comm.Recv([data, MPI.FLOAT], source=0, tag=MPI.ANY_TAG, status=status)
+            # time.sleep(0.05)
+            self.set_matrix_from_mpi(data)
             self.data_received_event.set()
 
     def set_edge_threshold(self, threshold=None):
@@ -113,9 +135,10 @@ class MPI_Controller(GraphAlgorithm):
         mask = self.raw_corr[np.triu_indices(len(self.model.vertex_ids))] > self.edge_threshold
         self.model.set_edge_threshold_mask(mask)
 
-    def set_matrix_from_mpi(self):
+    def set_matrix_from_mpi(self, data):
         # TODO: Get from MPI
-        self.raw_corr = self.loader.weights[1]*(-1)+1
+        # self.raw_corr = self.loader.weights[1]*(-1)+1
+        self.raw_corr = data
         # TODO: Modularize
         self.model.set_weights(self.weights_from_corr_linear(self.raw_corr), 0)
         self.set_edge_threshold()
