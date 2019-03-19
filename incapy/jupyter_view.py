@@ -301,24 +301,35 @@ class JupyterView(IView):
             l.notify(msg, value)
 
 
-class NoView(IView):
+class NoView():
     """
     For testing purposes only
 
     """
 
-    def __init__(self, model):
-        super().__init__(model)
+    def __init__(self, model, anim_speed_const=None, update_weight_time=None):
         self._register(model)
 
     def show(self):
         pass
 
     def update(self, data):
-        pass
+        try:
+            print(data[1][0].T[0])
+        except:
+            pass
 
     def _register(self, model):
         model.add_listener(self)
 
     def _unregister(self, model):
         model.remove_listener(self)
+
+    def update_ui(self, msg, value):
+        pass
+
+    def set_colors(self, colors):
+        pass
+
+    def add_event_listener(self, inca):
+        pass
