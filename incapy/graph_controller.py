@@ -49,10 +49,6 @@ class GraphAlgorithm(IController):
         self.loader = dataloader()
         self.loader.load_data(filename)
 
-        # Calculate the weights
-        # TODO currently not used yet (for other functions to be applied)
-        self.calculate_weights()
-
         # Populate the model with the data
         self.populate_model()
 
@@ -171,11 +167,6 @@ class GraphAlgorithm(IController):
         self.model.set_positions(self.loader.positions[:, 1:3])
         self.model.set_number_windows(self.loader.number_windows)
 
-    def calculate_weights(self):
-        # calculate actual weights from x_corr
-        # TODO Use Sigmoid function
-        pass
-
     def get_color_attributes(self):
         """
         Calculates the color attributes of the vertices.
@@ -246,6 +237,9 @@ class GraphAlgorithm(IController):
 
         # TODO introduce error handling after last iteration of correlations
         # maybe call stop_iteration
+
+    def weights_from_corr_linear(self, weights):
+        return weights*(-1)+1
 
     def reset(self):
         """

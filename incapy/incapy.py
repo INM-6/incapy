@@ -48,8 +48,6 @@ class Incapy():
         :return: The view to be displayed.
 
         """
-        # Define all parameters required for display
-        self.controller.set_edge_threshold(edge_threshold)
         # Register for events happening in View
         self.view.add_event_listener(self)
 
