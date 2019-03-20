@@ -89,8 +89,10 @@ class MPI_Controller(GraphAlgorithm):
     def start_mpi_thread(self):
 
         # Init connection
-        fport_path = "trans_tvb_port_in.txt"
+        fport_path = "visport_in.txt"
+        print("Waiting for file")
         while not os.path.exists(fport_path):
+            print("Still waiting")
             pass
         fport = open(fport_path, "r")
         port = fport.read()
@@ -109,7 +111,9 @@ class MPI_Controller(GraphAlgorithm):
 
         while True:
             status = None
+            print("Waiting for actual data")
             self.sim_comm.Recv([data, MPI.FLOAT], source=0, tag=MPI.ANY_TAG, status=status)
+            print("Received data")
             # time.sleep(0.05)
             self.set_matrix_from_mpi(data)
             self.data_received_event.set()
