@@ -75,31 +75,31 @@ class MPI_Controller(GraphAlgorithm):
         # The time (in seconds) when to load the new window
         self.update_weight_time = update_weight_time
 
-        # FOR MPI
+        # # FOR MPI
         self.model.set_weights(np.zeros((len(self.model.vertex_ids), len(self.model.vertex_ids)), dtype=np.float64), 0)
         self.data_received_event = threading.Event()
         self.data_received_event.clear()
-        # self.raw_corr = None
-
-        self.comm = MPI.COMM_WORLD
-        rank = self.comm.Get_rank()
-        self.start_mpi_thread()
+        # # self.raw_corr = None
+        #
+        # self.comm = MPI.COMM_WORLD
+        # rank = self.comm.Get_rank()
+        # self.start_mpi_thread()
 
     def start_mpi_thread(self):
 
         # Init connection
-        fport_path = "visport_in.txt"
-        print("Waiting for file")
-        while not os.path.exists(fport_path):
-            print("Still waiting")
-            pass
-        fport = open(fport_path, "r")
-        port = fport.read()
-        fport.close()
-
-        self.sim_comm = self.comm.Connect(port, MPI.INFO_NULL, root=0)
-
-        rank_sim = self.sim_comm.Get_rank()
+        # fport_path = "visport_in.txt"
+        # print("Waiting for file")
+        # while not os.path.exists(fport_path):
+        #     print("Still waiting")
+        #     pass
+        # fport = open(fport_path, "r")
+        # port = fport.read()
+        # fport.close()
+        #
+        # self.sim_comm = self.comm.Connect(port, MPI.INFO_NULL, root=0)
+        #
+        # rank_sim = self.sim_comm.Get_rank()
 
         mpi_thread = threading.Thread(target=self.thread_runnable)
         mpi_thread.start()
@@ -109,11 +109,12 @@ class MPI_Controller(GraphAlgorithm):
         data = np.empty((len(self.model.vertex_ids), len(self.model.vertex_ids)))
 
         while True:
-            status = None
-            print("Waiting for actual data")
-            self.sim_comm.Recv([data, MPI.FLOAT], source=0, tag=MPI.ANY_TAG, status=status)
-            print("Received data")
-            # time.sleep(0.05)
+            # status = None
+            # print("Waiting for actual data")
+            # self.sim_comm.Recv([data, MPI.FLOAT], source=0, tag=MPI.ANY_TAG, status=status)
+            # print("Received data")
+            time.sleep(0.05)
+            data = np.random.rand(*data.shape)
             self.set_matrix_from_mpi(data)
             self.data_received_event.set()
 
@@ -157,7 +158,7 @@ class MPI_Controller(GraphAlgorithm):
 
         """
 
-        # self.start_mpi_thread()
+        self.start_mpi_thread()
 
         # TODO make skip weights based on number of iterations (reproducability)
         self.data_received_event.wait()
@@ -205,9 +206,3 @@ class MPI_Controller(GraphAlgorithm):
             with self.mutex:
                 # The function to calculate the new positions
                 self.do_step()
-
-
-
-
-
-
