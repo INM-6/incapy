@@ -83,8 +83,7 @@ class MPI_Controller(GraphAlgorithm):
 
         self.comm = MPI.COMM_WORLD
         rank = self.comm.Get_rank()
-
-
+        self.start_mpi_thread()
 
     def start_mpi_thread(self):
 
@@ -158,7 +157,7 @@ class MPI_Controller(GraphAlgorithm):
 
         """
 
-        self.start_mpi_thread()
+        # self.start_mpi_thread()
 
         # TODO make skip weights based on number of iterations (reproducability)
         self.data_received_event.wait()
