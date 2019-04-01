@@ -144,8 +144,9 @@ class MPI_Controller(GraphAlgorithm):
         # self.raw_corr = self.loader.weights[1]*(-1)+1
         self.raw_corr = data
         # TODO: Modularize
-        self.model.set_weights(self.weights_from_corr_linear(self.raw_corr), 0)
-        self.set_edge_threshold()
+        with self.mutex:
+            self.model.set_weights(self.weights_from_corr_linear(self.raw_corr), 0)
+            self.set_edge_threshold()
 
     def next_window(self, value=None):
         pass
