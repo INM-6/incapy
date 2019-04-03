@@ -38,7 +38,25 @@ class MPI_Controller(GraphAlgorithm):
         # Load the data
         # TODO should not be needed any more later
         self.loader = dataloader()
-        self.loader.load_data(filename)
+        self.loader.positions = np.array(np.meshgrid(np.arange(10), np.arange(10)))
+        arr = np.ndarray((100, 3))
+        arr[:, 1] = np.hstack(self.loader.positions[0])
+        arr[:, 2] = np.hstack(self.loader.positions[1])
+        self.loader.positions = arr
+        self.loader.vertex_ids = np.arange(100)
+        self.loader.number_windows = 1
+        self.loader.edge_ids = np.empty((5050, 2), dtype=np.int32)
+        count = 0
+        import itertools as it
+        self.loader.edge_ids = np.array(it.combinations())
+        for i in range(100):
+            for j in range(i, 100):
+                self.loader.edge_ids[count][0] = i
+                self.loader.edge_ids[count][1] = j
+                count += 1
+        #with open("test", mode='w+') as f:
+        print("{}".format(count))
+        # self.loader.load_data(filename)
 
         # Populate the model with the data
         self.populate_model()
@@ -79,6 +97,9 @@ class MPI_Controller(GraphAlgorithm):
         self.model.set_weights(np.zeros((len(self.model.vertex_ids), len(self.model.vertex_ids)), dtype=np.float64), 0)
         self.data_received_event = threading.Event()
         self.data_received_event.clear()
+
+        self.init_algorithm()
+
         # # self.raw_corr = None
         #
         # self.comm = MPI.COMM_WORLD
@@ -204,6 +225,9 @@ class MPI_Controller(GraphAlgorithm):
             #     # when self.update_weight_time is 0
             #     self.current_window_time = curr_time
 
+            # Is not reached
+            with open("test", mode='w+') as f:
+                f.write("almost{}".format(time.time()))
             with self.mutex:
                 # The function to calculate the new positions
                 self.do_step()

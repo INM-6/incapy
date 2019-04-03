@@ -285,7 +285,7 @@ class GraphAlgorithm(IController):
         # TODO: Maybe catch Keyboard interrupt to output position
 
         while True:
-            # Wait for other events
+            # In case of pause wait for continue signal
             self.wait_event.wait()
             # If stop is requested,
             if self.stop:
