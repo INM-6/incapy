@@ -106,6 +106,39 @@ class MPI_Controller(GraphAlgorithm):
         # rank = self.comm.Get_rank()
         # self.start_mpi_thread()
 
+        # TODO: Reenable for MPI
+        #self.sim_comm = self.get_connection()
+        self.data = np.empty((len(self.model.vertex_ids), len(self.model.vertex_ids)))
+
+    def get_connection(self):
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
+        #self.start_mpi_thread()
+        fport_path = "visport_in.txt"
+        print("Waiting for file")
+        while not os.path.exists(fport_path):
+            print("Still waiting")
+            pass
+        fport = open(fport_path, "r")
+        port = fport.read()
+        fport.close()
+
+        sim_comm = comm.Connect(port, MPI.INFO_NULL, root=0)
+
+        rank_sim = sim_comm.Get_rank()
+
+        self.data = np.empty((len(self.model.vertex_ids), len(self.model.vertex_ids)))
+
+        # TODO: Receive necessary metadata
+        return sim_comm
+
+    def receive_data(self):
+        # TODO: Reenable for MPI
+        #self.sim_comm.Recv([self.data, MPI.FLOAT], source=0, tag=MPI.ANY_TAG, status=None)
+        #time.sleep(0.01)
+        self.data = np.random.rand(*self.data.shape)
+
+
     def start_mpi_thread(self):
 
         # Init connection
@@ -127,16 +160,13 @@ class MPI_Controller(GraphAlgorithm):
 
     def thread_runnable(self):
 
-        data = np.empty((len(self.model.vertex_ids), len(self.model.vertex_ids)))
-
         while True:
             # status = None
             # print("Waiting for actual data")
             # self.sim_comm.Recv([data, MPI.FLOAT], source=0, tag=MPI.ANY_TAG, status=status)
             # print("Received data")
-            time.sleep(0.01)
-            data = np.random.rand(*data.shape)
-            self.set_matrix_from_mpi(data)#
+            self.receive_data()
+            self.set_matrix_from_mpi(self.data)  #
         #fport_path = "visport_in.txt"
         # print("Waiting for file")
         # while not os.path.exists(fport_path):
