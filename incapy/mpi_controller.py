@@ -46,16 +46,16 @@ class MPI_Controller(GraphAlgorithm):
         self.loader.vertex_ids = np.arange(100)
         self.loader.number_windows = 1
         self.loader.edge_ids = np.empty((5050, 2), dtype=np.int32)
-        count = 0
+        # count = 0
         import itertools as it
-        self.loader.edge_ids = np.array(it.combinations())
-        for i in range(100):
-            for j in range(i, 100):
-                self.loader.edge_ids[count][0] = i
-                self.loader.edge_ids[count][1] = j
-                count += 1
+        self.loader.edge_ids = np.array(list(it.combinations(self.loader.vertex_ids, 2)))
+        # for i in range(100):
+        #     for j in range(i, 100):
+        #         self.loader.edge_ids[count][0] = i
+        #         self.loader.edge_ids[count][1] = j
+        #         count += 1
         #with open("test", mode='w+') as f:
-        print("{}".format(count))
+        # print("{}".format(count))
         # self.loader.load_data(filename)
 
         # Populate the model with the data
@@ -134,9 +134,17 @@ class MPI_Controller(GraphAlgorithm):
             # print("Waiting for actual data")
             # self.sim_comm.Recv([data, MPI.FLOAT], source=0, tag=MPI.ANY_TAG, status=status)
             # print("Received data")
-            time.sleep(0.05)
+            time.sleep(0.01)
             data = np.random.rand(*data.shape)
-            self.set_matrix_from_mpi(data)
+            self.set_matrix_from_mpi(data)#
+        #fport_path = "visport_in.txt"
+        # print("Waiting for file")
+        # while not os.path.exists(fport_path):
+        #     print("Still waiting")
+        #     pass
+        # fport = open(fport_path, "r")
+        # port = fport.read()
+        # fport.close()
             self.data_received_event.set()
 
     def set_edge_threshold(self, threshold=None):
