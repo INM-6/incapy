@@ -16,7 +16,7 @@ class GraphAlgorithm(IController):
 
     """
 
-    def __init__(self, model, filename, dataloader, repulsive_const, anim_speed_const, update_weight_time):
+    def __init__(self, model, filename, data_loader, repulsive_const, anim_speed_const, update_weight_time):
         """
         Constructor for the GraphAlgorithm class. Initializes all attributes.
 
@@ -28,7 +28,7 @@ class GraphAlgorithm(IController):
             repusive constant
         :param anim_speed_const: float
             animation speed constant
-        :param dataloader: class
+        :param data_loader: class
             The dataloader class
 
         """
@@ -46,7 +46,7 @@ class GraphAlgorithm(IController):
         self.model = model
 
         # Load the data
-        self.loader = dataloader()
+        self.loader = data_loader()
         self.loader.load_data(filename)
 
         # Populate the model with the data
