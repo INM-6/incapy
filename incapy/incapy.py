@@ -42,27 +42,27 @@ class Incapy():
         self.anim_speed_const = anim_speed_const
         self.repulsive_const = repulsive_const
         self.time_per_window = time_per_window
-        self.view =view_class(self.model, anim_speed_const=anim_speed_const, update_weight_time=time_per_window, **kwargs)
+        self.view =view_class(self.model, anim_speed_const=anim_speed_const, time_per_window=time_per_window, **kwargs)
         self.controller = controller_class(self.model, repulsive_const=repulsive_const, anim_speed_const=anim_speed_const,
-                                           update_weight_time=time_per_window, **kwargs)
+                                           time_per_window=time_per_window, **kwargs)
 
     # TODO: Encapsulate algorithm and pass it alone, separate from controller
     # TODO: Generic view for all vs. MPIView specific for MPI; maybe split into wrapper for use case and central display
     # TODO: Do not use JupyterView
     def init_mpi(self, view_class=JupyterView, algorithm=None, **mpiargs):
-        self.view = view_class(self.model, anim_speed_const=self.anim_speed_const, update_weight_time=self.time_per_window)
+        self.view = view_class(self.model, anim_speed_const=self.anim_speed_const, time_per_window=self.time_per_window)
         self.controller = MPIController(self.model, repulsive_const=self.repulsive_const, anim_speed_const=self.anim_speed_const,
-                                           update_weight_time=self.time_per_window)
+                                        time_per_window=self.time_per_window)
 
     def init_file(self, filename, view_class=JupyterView, algorithm=None, data_loader=DataLoader, **fileargs):
-        self.view = view_class(self.model, anim_speed_const=self.anim_speed_const, update_weight_time=self.time_per_window)
+        self.view = view_class(self.model, anim_speed_const=self.anim_speed_const, time_per_window=self.time_per_window)
         self.controller = GraphAlgorithm(self.model, repulsive_const=self.repulsive_const, anim_speed_const=self.anim_speed_const,
-                                           update_weight_time=self.time_per_window, filename=filename, data_loader=data_loader)
+                                         time_per_window=self.time_per_window, filename=filename, data_loader=data_loader)
 
     def init_elephant(self, ccm, view_class=JupyterView, algorithm=None, **elephargs):
-        self.view = view_class(self.model, anim_speed_const=self.anim_speed_const, update_weight_time=self.time_per_window)
+        self.view = view_class(self.model, anim_speed_const=self.anim_speed_const, time_per_window=self.time_per_window)
         self.controller = EleController(self.model, repulsive_const=self.repulsive_const, anim_speed_const=self.anim_speed_const,
-                                           update_weight_time=self.time_per_window, ccm=ccm)
+                                           time_per_window=self.time_per_window, ccm=ccm)
 
     def show(self, edge_threshold=0.4):
         """

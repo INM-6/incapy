@@ -19,7 +19,7 @@ class JupyterView(IView):
 
     """
 
-    def __init__(self, model, update_weight_time, anim_speed_const):
+    def __init__(self, model, time_per_window, anim_speed_const):
         """
         Constructor for the JupyterView class.
 
@@ -32,7 +32,7 @@ class JupyterView(IView):
         super().__init__(model)
 
         self.model = model
-        self.update_weight_time = update_weight_time
+        self.time_per_window = time_per_window
         self.anim_speed_const = anim_speed_const
 
         # List of all listeners that might need to react to certain input events
@@ -85,7 +85,7 @@ class JupyterView(IView):
                                                    min=0.1, max=3.02, step=0.1, orientation='horizontal',
                                                    style=slider_style)
 
-        self.time_to_update_weight = widgets.IntSlider(description="Time per window", value=self.update_weight_time,
+        self.time_to_update_weight = widgets.IntSlider(description="Time per window", value=self.time_per_window,
                                                        min=0, max=60, step=1, orientation='horizontal',
                                                        style=slider_style)
 
