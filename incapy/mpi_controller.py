@@ -1,4 +1,6 @@
 from .graph_controller import GraphAlgorithm
+from .incapy_interface import start, get_data
+from .controller import Controller
 
 import threading
 import os
@@ -6,9 +8,9 @@ import numpy as np
 import time
 from mpi4py import MPI
 
-class MPI_Controller(GraphAlgorithm):
+class MPIController(Controller):
 
-    def __init__(self, model, filename, dataloader, repulsive_const, anim_speed_const, update_weight_time):
+    def __init__(self, model, repulsive_const, anim_speed_const, time_per_window):
         """
         Constructor for the GraphAlgorithm class. Initializes all attributes.
 
@@ -20,141 +22,47 @@ class MPI_Controller(GraphAlgorithm):
             repusive constant
         :param anim_speed_const: float
             animation speed constant
-        :param dataloader: class
-            The dataloader class
-
         """
 
-        # Needed for threading
-        self.wait_event = threading.Event()
-        self.mutex = threading.Lock()
-        self.run_thread = None
-
-        # Flag that is set to stop or pause execution
-        self.stop = False
-
-        self.model = model
+        super().__init__(model, repulsive_const=repulsive_const, anim_speed_const=anim_speed_const)
 
         # Load the data
+        # Should be single call to start()
         # TODO should not be needed any more later
-        self.loader = dataloader()
-        self.loader.positions = np.array(np.meshgrid(np.arange(10), np.arange(10)))
-        arr = np.ndarray((100, 3))
-        arr[:, 1] = np.hstack(self.loader.positions[0])
-        arr[:, 2] = np.hstack(self.loader.positions[1])
-        self.loader.positions = arr
-        self.loader.vertex_ids = np.arange(100)
-        self.loader.number_windows = 1
-        self.loader.edge_ids = np.empty((5050, 2), dtype=np.int32)
-        # count = 0
-        import itertools as it
-        self.loader.edge_ids = np.array(list(it.combinations(self.loader.vertex_ids, 2)))
-        # for i in range(100):
-        #     for j in range(i, 100):
-        #         self.loader.edge_ids[count][0] = i
-        #         self.loader.edge_ids[count][1] = j
-        #         count += 1
-        #with open("test", mode='w+') as f:
-        # print("{}".format(count))
-        # self.loader.load_data(filename)
+        self.metadata = start()
 
         # Populate the model with the data
-        self.populate_model()
+        self.populate_model(self.metadata)
 
         # NOTE: edge_threshold needs to be set before calling update weights
-        # TODO should not be needed any more later
+        # TODO should not be needed any more later (once StreamView is created)
         self.current_window = -1
 
-        # Default value for threshold that determines which edges should be shown
-        self.edge_threshold = 0.6
-
-        self.raw_corr = np.zeros((len(self.model.vertex_ids), len(self.model.vertex_ids)), dtype=np.float64)
-        #
-        # self.set_edge_threshold(self.edge_threshold)
-
-        # Constants needed for the force-directed layout algorithm
-        self.natural_spring_length = None
-        # TODO: Calculate center
-        self.graph_center = None
-        # TODO: Should be changeable by user (interactively?)
-        self.repulsive_const = repulsive_const  # Daniel: 1
-        self.anim_speed_const = anim_speed_const
-        # 1/20 is replacement for time since last frame (i.e. frame rate would be 20Hz)
-        self.max_step_size = self.anim_speed_const/20   # Daniel: 0.9, is however changed every step
-        # Get default from file or incapy constructor
-
         # The color attributes for the nodes
-        self.hex_colors = None
         self.get_color_attributes()
 
         # Repeat is by default false, meaning that after the last window, no more windows will be loaded
         self.repeat = False
 
         # The time (in seconds) when to load the new window
-        self.update_weight_time = update_weight_time
+        self.time_per_window = time_per_window
 
         # # FOR MPI
-        self.model.set_weights(np.zeros((len(self.model.vertex_ids), len(self.model.vertex_ids)), dtype=np.float64), 0)
         self.data_received_event = threading.Event()
         self.data_received_event.clear()
 
         self.init_algorithm()
-
-        # # self.raw_corr = None
-        #
-        # self.comm = MPI.COMM_WORLD
-        # rank = self.comm.Get_rank()
-        # self.start_mpi_thread()
-
-        # TODO: Reenable for MPI
-        #self.sim_comm = self.get_connection()
         self.data = np.empty((len(self.model.vertex_ids), len(self.model.vertex_ids)))
-
-    def get_connection(self):
-        comm = MPI.COMM_WORLD
-        rank = comm.Get_rank()
-        #self.start_mpi_thread()
-        fport_path = "visport_in.txt"
-        print("Waiting for file")
-        while not os.path.exists(fport_path):
-            print("Still waiting")
-            pass
-        fport = open(fport_path, "r")
-        port = fport.read()
-        fport.close()
-
-        sim_comm = comm.Connect(port, MPI.INFO_NULL, root=0)
-
-        rank_sim = sim_comm.Get_rank()
-
-        self.data = np.empty((len(self.model.vertex_ids), len(self.model.vertex_ids)))
-
-        # TODO: Receive necessary metadata
-        return sim_comm
 
     def receive_data(self):
-        # TODO: Reenable for MPI
-        #self.sim_comm.Recv([self.data, MPI.FLOAT], source=0, tag=MPI.ANY_TAG, status=None)
-        #time.sleep(0.01)
-        self.data = np.random.rand(*self.data.shape)
-
+        time.sleep(0.05)
+        with open("test", mode="w+"):
+            print("BEFORE RECEIVE")
+        self.data = get_data()
+        with open("test", mode="w+"):
+            print("AFTER RECEIVE")
 
     def start_mpi_thread(self):
-
-        # Init connection
-        # fport_path = "visport_in.txt"
-        # print("Waiting for file")
-        # while not os.path.exists(fport_path):
-        #     print("Still waiting")
-        #     pass
-        # fport = open(fport_path, "r")
-        # port = fport.read()
-        # fport.close()
-        #
-        # self.sim_comm = self.comm.Connect(port, MPI.INFO_NULL, root=0)
-        #
-        # rank_sim = self.sim_comm.Get_rank()
-
         mpi_thread = threading.Thread(target=self.thread_runnable)
         mpi_thread.start()
 
@@ -176,27 +84,6 @@ class MPI_Controller(GraphAlgorithm):
         # port = fport.read()
         # fport.close()
             self.data_received_event.set()
-
-    def set_edge_threshold(self, threshold=None):
-        """
-         Sets the edge threshold (all edges greater than the threshold are displayed)
-
-         :param threshold: float
-             The edge threshold
-
-         :return: None
-
-         """
-
-        # If threshold has been provided,
-        if threshold is not None:
-            # Use that threshold
-            self.edge_threshold = threshold
-        # Check directly from given values, without any transformation
-        # Can be changed to use transformed weights instead, if it becomes necessary
-        # to remove x_corr from memory
-        mask = self.raw_corr[np.triu_indices(len(self.model.vertex_ids))] > self.edge_threshold
-        self.model.set_edge_threshold_mask(mask)
 
     def set_matrix_from_mpi(self, data):
         # TODO: Get from MPI
@@ -263,9 +150,6 @@ class MPI_Controller(GraphAlgorithm):
             #     # when self.update_weight_time is 0
             #     self.current_window_time = curr_time
 
-            # Is not reached
-            with open("test", mode='w+') as f:
-                f.write("almost{}".format(time.time()))
             with self.mutex:
                 # The function to calculate the new positions
                 self.do_step()

@@ -25,15 +25,4 @@ class IController(ABC):
     def stop_iteration(self):
         raise NotImplementedError()
 
-    @abstractmethod
-    def pause_iteration(self):
-        raise NotImplementedError()
 
-    @abstractmethod
-    def continue_iteration(self):
-        raise NotImplementedError()
-
-    @abstractmethod
-    def _iterate(self):
-        # calculations for one time step
-        raise NotImplementedError()
