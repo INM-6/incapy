@@ -23,24 +23,8 @@ class MPIController(Controller):
 
         super().__init__(model, repulsive_const=repulsive_const, anim_speed_const=anim_speed_const)
 
-        # Load the data
-        # Should be single call to start()
-        # TODO should not be needed any more later
-        self.metadata = start()
-
-        # Populate the model with the data
-        self.populate_model(self.metadata)
-
-        # The color attributes for the nodes
-        self.get_color_attributes()
-
-        # Repeat is by default false, meaning that after the last window, no more windows will be loaded
-        self.repeat = False
-
         # The time (in seconds) when to load the new window
         self.time_per_window = time_per_window
-
-        self.data = np.empty((len(self.model.vertex_ids), len(self.model.vertex_ids)))
 
         # XXX To avoid recursion in set_matrix_from_mpi due to update of view and thus deadlock
         self.next_window_flag = threading.Event()
@@ -48,6 +32,9 @@ class MPIController(Controller):
         # The time (in seconds) when to load the new window
         self.time_per_window = 0.1
         self.current_window_time = 0
+
+    def get_metadata(self):
+        return start()
 
     def next_window(self, value=None):
 

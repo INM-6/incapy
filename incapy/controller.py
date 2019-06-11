@@ -23,8 +23,16 @@ class Controller(IController):
         super().__init__(model)
         self.model = model
 
+        self.metadata = self.get_metadata()
+
+        # Populate the model with the data
+        self.populate_model(self.metadata)
+
+        # The color attributes for the nodes
+        self.get_color_attributes()
+
         self.algorithm_class = algorithm
-        self.algorithm = None
+        self.algorithm = algorithm(self.model, repulsive_const, anim_speed_const)
 
         # Needed for threading
         self.wait_event = threading.Event()
@@ -45,6 +53,10 @@ class Controller(IController):
         self.set_edge_threshold(1)
 
         self.current_window_time = 0
+
+    @abstractmethod
+    def get_metadata(self):
+        raise NotImplementedError
 
     def populate_model(self, metadata):
         # set attributes of the graph
@@ -121,8 +133,6 @@ class Controller(IController):
 
         """
 
-        self.algorithm = self.algorithm_class(self.model, self.repulsive_const, self.anim_speed_const)
-
         # TODO make skip weights based on number of iterations (reproducability)
 
         # Time is needed for updating weights after certain time (update_weight_time)
@@ -174,6 +184,18 @@ class Controller(IController):
     #########################################################
     ########### Reactions to UI interaction #################
     #########################################################
+
+    def change_value(self, **kwargs):
+        for key in kwargs:
+            self.parse(key, kwargs[key])
+
+    def parse(self, key, val):
+        if key in self.values:
+            # Might require more processing here
+            # But could be done as @property
+            setattr(self, key, val)
+        else:
+            self.algorithm.parse(key, val)
 
     def reset(self):
         """

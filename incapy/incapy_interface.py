@@ -23,7 +23,7 @@ def start():
 def get_data():
     global i
     i += 1
-    i %= 5
+    #i %= 300
     res = data[i]
     return res
 
@@ -31,7 +31,16 @@ global i
 i = 0
 loader = DataLoader()
 loader.load_data('/home/mueller/Projekte/INCAPY/data/corr_data.h5')
+#loader.load_data('/home/mueller/Projekte/INCAPY/data/cpp2_time_variant_data.h5')
 
 data = np.empty((500, 100, 100))
 data = np.random.rand(*data.shape)
 data = loader.weights
+
+l = data
+r = data[1]
+data = np.linspace(l[0], l[1], num=200, endpoint=False)
+for i in range(1, 6-1):
+    to_stack = np.linspace(l[i], l[i+1], num=200, endpoint=False)
+    data = np.concatenate((data, to_stack))
+print(data.shape)

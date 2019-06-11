@@ -12,6 +12,7 @@ class Incapy():
 
     """
     # Incapy class needs to control all constants, because they are only passed through here
+    # TODO: COLLECT EVERYTHING AS KWARGS
     def __init__(self, repulsive_const=1, anim_speed_const=1, time_per_window=30,
                  model_class=GraphModel, view_class=JupyterView, controller_class=FileController,
                  **kwargs):
@@ -200,6 +201,7 @@ class Incapy():
 
         self.controller.set_time_per_window(value)
 
+    # TODO: MOVE TO CONTROLLER!!!
     # TODO: Refactor into dictionary
     def notify(self, msg, value=None):
         """

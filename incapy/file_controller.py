@@ -27,26 +27,23 @@ class FileController(Controller):
 
         """
 
-        super().__init__(model, repulsive_const=repulsive_const, anim_speed_const=anim_speed_const)
-
         # Load the data
         self.loader = data_loader()
-        self.metadata = self.loader.load_data(filename)
+        self.filename = filename
 
-        # Populate the model with the data
-        self.populate_model(self.metadata)
+        super().__init__(model, repulsive_const=repulsive_const, anim_speed_const=anim_speed_const)
 
         # NOTE: edge_threshold needs to be set before calling update weights
         self.current_window = -1
-
-        # The color attributes for the nodes
-        self.get_color_attributes()
 
         # Repeat is by default false, meaning that after the last window, no more windows will be loaded
         self.repeat = False
 
         # The time (in seconds) when to load the new window
         self.time_per_window = time_per_window
+
+    def get_metadata(self):
+        return self.loader.load_data(filename=self.filename)
 
     def populate_model(self, metadata):
         """
