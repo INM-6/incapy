@@ -34,6 +34,9 @@ class DataLoader:
         # Weights is an upper triangular matrix consisting of the weights between the vertices
         self.weights = None
 
+        # Raw correlation data to be used in algorithm
+        self.raw_corr = None
+
         # An integer consisting of the number of windows
         self.number_windows = None
 
@@ -90,6 +93,7 @@ class DataLoader:
         # NEED INDICES BEFORE AND EDGES
         num_vert = len(self.vertex_ids)
         self.weights = np.zeros((self.x_corr.shape[0]-1, num_vert, num_vert), dtype='float64')
+        self.raw_corr = np.empty_like(self.weights, dtype='float64')
         upper = np.triu_indices(num_vert)
 
         # The number of windows
@@ -108,6 +112,7 @@ class DataLoader:
 
             # Actually calculate graph weights from xcorr
             # Currently this is 1-xcorr
+            self.raw_corr[timestamp] = self.weights[timestamp].copy()
             self.weights[timestamp], _ = self.x_corr_to_weight(self.weights[timestamp])
 
         # Vertex Attributes

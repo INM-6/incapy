@@ -1,12 +1,8 @@
-
-import threading
 from .controller import Controller
 import time
-import math
-import numpy as np
 
 
-class GraphAlgorithm(Controller):
+class FileController(Controller):
     """
 
     The concrete controller. All the calculations are handled here.
@@ -16,7 +12,7 @@ class GraphAlgorithm(Controller):
 
     def __init__(self, model, filename, data_loader, repulsive_const, anim_speed_const, time_per_window, **kwargs):
         """
-        Constructor for the GraphAlgorithm class. Initializes all attributes.
+        Constructor for the FileController class. Initializes all attributes.
 
         :param model:
             The model class
@@ -43,9 +39,6 @@ class GraphAlgorithm(Controller):
         # NOTE: edge_threshold needs to be set before calling update weights
         self.current_window = -1
 
-        # Sets the weights
-        self.next_window(0)
-
         # The color attributes for the nodes
         self.get_color_attributes()
 
@@ -57,7 +50,6 @@ class GraphAlgorithm(Controller):
 
     def get_metadata(self):
         return self.loader.load_data(self)
-
 
     def set_repeat(self, value):
         """
@@ -106,8 +98,9 @@ class GraphAlgorithm(Controller):
             self.current_window = value
         # sends the data to the model and update the matrix every few seconds
         try:
+            self.raw_corr = self.loader.raw_corr[curr_window]
             with self.mutex:
-                self.model.set_weights(self.loader.weights[curr_window], curr_window)
+                self.model.set_weights(self.algorithm.weights_from_corr_linear(self.raw_corr), curr_window)
                 self.set_edge_threshold()
                 # New window has now been used for 0 seconds
                 # Thus this time needs to be reset in order not to move on too fast
@@ -119,53 +112,3 @@ class GraphAlgorithm(Controller):
 
         # TODO introduce error handling after last iteration of correlations
         # maybe call stop_iteration
-
-    def run_iteration(self):
-        """
-        Orchestrating function for running the animation.
-
-        :return: None
-
-        """
-
-        # TODO make skip weights based on number of iterations (reproducability)
-
-        # Time is needed for updating weights after certain time (update_weight_time)
-        last_time = time.time()
-        self.current_window_time = last_time
-
-        self.next_window(0)
-        self.init_algorithm()
-
-        # TODO: Maybe catch Keyboard interrupt to output position
-
-        while True:
-            # In case of pause wait for continue signal
-            self.wait_event.wait()
-            # If stop is requested,
-            if self.stop:
-                # stop the run_iteration
-                break
-
-            # This makes the speed of the animation constant
-            # Even if the framerate drops, vertices will move at about the same speed
-            curr_time = time.time()
-            dt = curr_time - last_time
-            last_time = curr_time
-
-            # dt must be bounded, in case of string lag positions should not jump too far
-            dt = min(dt, 0.1)
-            self.max_step_size = self.anim_speed_const*dt
-
-            # Load the new window, if the update_weight_time is reached
-            if curr_time - self.current_window_time > self.time_per_window:
-                if self.time_per_window != 0:
-                    self.next_window()
-                # Note: Needs to be set so if slider that specifies time per window is moved away from 0,
-                # the window will not be switched immediately!!! So time needs to be around 0 at any moment
-                # when self.update_weight_time is 0
-                self.current_window_time = curr_time
-
-            with self.mutex:
-                # The function to calculate the new positions
-                self.do_step()
