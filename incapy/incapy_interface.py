@@ -1,4 +1,5 @@
 import numpy as np
+from .load_data import DataLoader
 
 def start():
     num_vert = 100
@@ -22,10 +23,19 @@ def start():
 def get_data():
     global i
     i += 1
-    i %= 500
-    return data[i]
+    i %= 5
+    res = data[i]
+    with open("test3", mode="w+") as f:
+        print(i, file=f)
+    return res
 
 global i
 i = 0
+loader = DataLoader()
+loader.load_data('/home/mueller/Projekte/INCAPY/data/corr_data.h5')
+
 data = np.empty((500, 100, 100))
 data = np.random.rand(*data.shape)
+data = 1-loader.weights
+with open("test3", mode="w+") as f:
+    print(data[0].shape, file=f)

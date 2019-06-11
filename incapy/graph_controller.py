@@ -1,12 +1,12 @@
 
 import threading
-from .icontroller import IController
+from .controller import Controller
 import time
 import math
 import numpy as np
 
 
-class GraphAlgorithm(IController):
+class GraphAlgorithm(Controller):
     """
 
     The concrete controller. All the calculations are handled here.
@@ -14,7 +14,7 @@ class GraphAlgorithm(IController):
 
     """
 
-    def __init__(self, model, filename, data_loader, repulsive_const, anim_speed_const, time_per_window):
+    def __init__(self, model, filename, data_loader, repulsive_const, anim_speed_const, time_per_window, **kwargs):
         """
         Constructor for the GraphAlgorithm class. Initializes all attributes.
 
@@ -31,7 +31,7 @@ class GraphAlgorithm(IController):
 
         """
 
-        super().__init__(model)
+        super().__init__(model, repulsive_const=repulsive_const, anim_speed_const=anim_speed_const)
 
         # Load the data
         self.loader = data_loader()
@@ -183,33 +183,3 @@ class GraphAlgorithm(IController):
             with self.mutex:
                 # The function to calculate the new positions
                 self.do_step()
-
-    # def pause_iteration(self):
-    #     """
-    #     Pauses the iteration.
-    #
-    #     :return: None
-    #
-    #     """
-    #
-    #     self.wait_event.clear()
-    #
-    # def continue_iteration(self):
-    #     """
-    #     Continues the iteration after pausing it.
-    #
-    #     :return: None
-    #
-    #     """
-    #
-    #     self.wait_event.set()
-    #
-    # def _iterate(self):
-    #     """
-    #     Calculations for one time step.
-    #
-    #     :return: None
-    #
-    #     """
-    #
-    #     raise NotImplementedError()

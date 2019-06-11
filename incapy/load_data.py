@@ -49,6 +49,11 @@ class DataLoader:
         """
 
         self.load_graph_topology_time_variant(filename)
+        res = {'positions': self.positions,
+               'vertex_ids': self.vertex_ids,
+               'edge_ids': self.edge_ids,
+               'number_windows': self.number_windows}
+        return res
 
     def load_graph_topology_time_variant(self, filename):
         """

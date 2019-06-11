@@ -78,7 +78,9 @@ class Controller(IController):
         self.model.set_edge_threshold_mask(mask)
 
     @abstractmethod
-    def next_window(self):
+    def next_window(self, value=None):
+        with open("test1", mode="w+") as f:
+            print("In parent", file=f)
         # sends the data to the model and update the matrix every few seconds
         raise NotImplementedError()
 
@@ -193,6 +195,26 @@ class Controller(IController):
             vector_1 = self.model.vertex_pos[nodes[1]]
             sum_edge_lengths += np.linalg.norm(vector_0-vector_1)
         self.natural_spring_length = 1.5 * sum_edge_lengths/len(self.model.edges.T[0])
+
+    def pause_iteration(self):
+        """
+        Pauses the iteration.
+
+        :return: None
+
+        """
+
+        self.wait_event.clear()
+
+    def continue_iteration(self):
+        """
+        Continues the iteration after pausing it.
+
+        :return: None
+
+        """
+
+        self.wait_event.set()
 
     def calculate_graph_center(self):
         """

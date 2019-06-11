@@ -8,9 +8,10 @@ import numpy as np
 import time
 from mpi4py import MPI
 
+
 class MPIController(Controller):
 
-    def __init__(self, model, repulsive_const, anim_speed_const, time_per_window):
+    def __init__(self, model, repulsive_const, anim_speed_const, time_per_window, **kwargs):
         """
         Constructor for the GraphAlgorithm class. Initializes all attributes.
 
@@ -55,34 +56,41 @@ class MPIController(Controller):
         self.data = np.empty((len(self.model.vertex_ids), len(self.model.vertex_ids)))
 
     def receive_data(self):
-        time.sleep(0.05)
-        with open("test", mode="w+"):
-            print("BEFORE RECEIVE")
+        #time.sleep(0.05)
         self.data = get_data()
-        with open("test", mode="w+"):
-            print("AFTER RECEIVE")
+
+    def next_window(self, value=None):
+        return
+        # try:
+        #     raise ValueError()
+        # except ValueError as e:
+        #     pass
+        #import traceback
+        #with open("test1", mode="w+") as f:
+        #    traceback.print_stack(file=f)
+        with open("test2", mode="w+") as f:
+            print("Data received0", file=f)
+        self.receive_data()
+        with open("test2", mode="w+") as f:
+            print("Data received1", file=f)
+        self.set_matrix_from_mpi(self.data)
+        with open("test2", mode="w+") as f:
+            print("Data received2", file=f)
 
     def start_mpi_thread(self):
         mpi_thread = threading.Thread(target=self.thread_runnable)
         mpi_thread.start()
 
     def thread_runnable(self):
-
-        while True:
-            # status = None
-            # print("Waiting for actual data")
-            # self.sim_comm.Recv([data, MPI.FLOAT], source=0, tag=MPI.ANY_TAG, status=status)
-            # print("Received data")
+        self.receive_data()
+        self.set_matrix_from_mpi(self.data)
+        with open("threadrun", mode="w+") as f:
+            print("Matrix set", file=f)
+        while not self.stop:
+            time.sleep(0.1)
+            # TODO: Maybe wait in case of pause
             self.receive_data()
-            self.set_matrix_from_mpi(self.data)  #
-        #fport_path = "visport_in.txt"
-        # print("Waiting for file")
-        # while not os.path.exists(fport_path):
-        #     print("Still waiting")
-        #     pass
-        # fport = open(fport_path, "r")
-        # port = fport.read()
-        # fport.close()
+            self.set_matrix_from_mpi(self.data)
             self.data_received_event.set()
 
     def set_matrix_from_mpi(self, data):
@@ -90,12 +98,13 @@ class MPIController(Controller):
         # self.raw_corr = self.loader.weights[1]*(-1)+1
         self.raw_corr = data
         # TODO: Modularize
+        with open("setmat", mode="a") as f:
+            print("Trying to lock mutex", file=f)
         with self.mutex:
+            with open("setmat", mode="a") as f:
+                print("succeeded to lock mutex", file=f)
             self.model.set_weights(self.weights_from_corr_linear(self.raw_corr), 0)
             self.set_edge_threshold()
-
-    def next_window(self, value=None):
-        pass
 
     def run_iteration(self):
         """
@@ -104,8 +113,11 @@ class MPIController(Controller):
         :return: None
 
         """
-
+        with open("runit", mode="w+") as f:
+            print("Running it", file=f)
         self.start_mpi_thread()
+        with open("runit", mode="w+") as f:
+            print("Started mpi thread", file=f)
 
         # TODO make skip weights based on number of iterations (reproducability)
         self.data_received_event.wait()

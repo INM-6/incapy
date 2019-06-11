@@ -128,14 +128,15 @@ class Incapy():
 
         self.controller.continue_iteration()
 
-    def skip(self):
+    def next_window(self):
         """
         Skips the current window and moves on to the next window.
 
         :return: None
 
         """
-
+        with open("test2", mode="w+") as f:
+            print(self.controller.next_window, file=f)
         self.controller.next_window()
 
     def reset(self):
@@ -224,7 +225,7 @@ class Incapy():
         elif msg == 'play':
             self.play()
         elif msg == 'next_window':
-            self.skip()
+            self.next_window()
         elif msg == 'reset':
             self.reset()
         elif msg == 'speed_change':

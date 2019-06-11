@@ -19,7 +19,7 @@ class JupyterView(IView):
 
     """
 
-    def __init__(self, model, time_per_window, anim_speed_const):
+    def __init__(self, model, time_per_window, anim_speed_const, **kwargs):
         """
         Constructor for the JupyterView class.
 
