@@ -58,6 +58,10 @@ class MPIController(Controller):
         # XXX To avoid recursion in set_matrix_from_mpi due to update of view and thus deadlock
         self.next_window_flag = threading.Event()
 
+        # The time (in seconds) when to load the new window
+        self.time_per_window = 0.1
+        self.current_window_time = 0
+
     def receive_data(self):
         self.data = get_data()
 
@@ -69,21 +73,7 @@ class MPIController(Controller):
 
         self.receive_data()
         self.set_matrix_from_mpi(self.data)
-
-    def start_mpi_thread(self):
-        mpi_thread = threading.Thread(target=self.thread_runnable)
-        mpi_thread.start()
-
-    def thread_runnable(self):
-        self.receive_data()
-        self.set_matrix_from_mpi(self.data)
         self.data_received_event.set()
-        while not self.stop:
-            time.sleep(0.1)
-            # TODO: Maybe wait in case of pause
-            self.receive_data()
-            self.set_matrix_from_mpi(self.data)
-            self.data_received_event.set()
 
     def set_matrix_from_mpi(self, data):
         # TODO: Get from MPI
@@ -110,7 +100,8 @@ class MPIController(Controller):
         :return: None
 
         """
-        self.start_mpi_thread()
+
+        self.next_window()
 
         # TODO make skip weights based on number of iterations (reproducability)
         self.data_received_event.wait()
@@ -143,14 +134,14 @@ class MPIController(Controller):
             dt = min(dt, 0.1)
             self.max_step_size = self.anim_speed_const * dt
 
-            # # Load the new window, if the update_weight_time is reached
-            # if curr_time - self.current_window_time > self.update_weight_time:
-            #     if self.update_weight_time != 0:
-            #         self.next_window()
-            #     # Note: Needs to be set so if slider that specifies time per window is moved away from 0,
-            #     # the window will not be switched immediately!!! So time needs to be around 0 at any moment
-            #     # when self.update_weight_time is 0
-            #     self.current_window_time = curr_time
+            # Load the new window, if the update_weight_time is reached
+            if curr_time - self.current_window_time > self.time_per_window:
+                if self.time_per_window != 0:
+                    self.next_window()
+                # Note: Needs to be set so if slider that specifies time per window is moved away from 0,
+                # the window will not be switched immediately!!! So time needs to be around 0 at any moment
+                # when self.update_weight_time is 0
+                self.current_window_time = curr_time
 
             with self.mutex:
                 # The function to calculate the new positions

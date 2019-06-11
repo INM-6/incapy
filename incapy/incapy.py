@@ -173,7 +173,7 @@ class Incapy():
 
         """
 
-        self.controller.set_update_weight_time(value)
+        self.controller.set_time_per_window(value)
 
     def update_window(self, value):
         """

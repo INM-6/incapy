@@ -58,20 +58,6 @@ class GraphAlgorithm(Controller):
     def get_metadata(self):
         return self.loader.load_data(self)
 
-    def set_update_weight_time(self, value):
-        """
-        Sets the time between the windows to be loaded to 'value' (set via slider by user)
-
-        :param value: int
-            Time (in seconds) when to load next window
-
-        :return: None
-
-        """
-
-        # Explicitly NOT reset time that current window has been used
-        self.time_per_window = value
-        self.model.set_update_weight_time(value)
 
     def set_repeat(self, value):
         """

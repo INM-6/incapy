@@ -148,6 +148,21 @@ class Controller(IController):
         self.wait_event.clear()
         self.stop = False
 
+    def set_time_per_window(self, value):
+        """
+        Sets the time between the windows to be loaded to 'value' (set via slider by user)
+
+        :param value: int
+            Time (in seconds) when to load next window
+
+        :return: None
+
+        """
+
+        # Explicitly NOT reset time that current window has been used
+        self.time_per_window = value
+        self.model.set_time_per_window(value)
+
     def start_iteration(self):
         """
         Starts the iteration to move the nodes accordingly.
