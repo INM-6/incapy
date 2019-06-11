@@ -32,13 +32,10 @@ class Controller(IController):
         self.run_thread = None
         # Flag that is set to stop or pause execution
         self.stop = False
-        # self.metadata = self.get_metadata()
-        # self.populate_model(self.metadata)
+
         # Constants needed for the force-directed layout algorithm
-        self.natural_spring_length = None
-        # TODO: Calculate center
-        self.graph_center = None
         # TODO: Should be changeable by user (interactively?)
+        # TODO: Maybe refactor, if other constants are needed
         self.repulsive_const = repulsive_const  # Daniel: 1
         self.anim_speed_const = anim_speed_const
         # The color attributes for the nodes

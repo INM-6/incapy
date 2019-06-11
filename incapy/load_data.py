@@ -112,14 +112,7 @@ class DataLoader:
 
             # Actually calculate graph weights from xcorr
             # Currently this is 1-xcorr
-            self.raw_corr[timestamp] = self.weights[timestamp].copy()
-            self.weights[timestamp], _ = self.x_corr_to_weight(self.weights[timestamp])
+            self.raw_corr[timestamp] = self.weights[timestamp]
 
         # Vertex Attributes
         self.positions = np.array(file['staticData/vertexAttributes/position'][:, 1:3])
-
-    def x_corr_to_weight(self, x_corr):
-        # weight = 1-x_corr
-        weight = x_corr*(-1)+1
-        inverse_sign = True
-        return weight, inverse_sign

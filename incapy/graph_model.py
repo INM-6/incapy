@@ -54,6 +54,22 @@ class GraphModel(IModel):
 
         self.listeners.append(view)
 
+    def update_ui_elements(self, msg, value=None):
+        """
+        Updates the ui_elements in the views.
+
+        :param msg: string
+            The message to see what element changed
+        :param value:
+            The changed value in the view.
+
+        :return: None
+
+        """
+
+        for l in self.listeners:
+            l.update_ui(msg, value)
+
     def _update_view(self):
         """
         Updates all the views.
@@ -140,22 +156,6 @@ class GraphModel(IModel):
         self.vertex_pos = positions
         self._update_view()
 
-    def update_ui_elements(self, msg, value=None):
-        """
-        Updates the ui_elements in the views.
-
-        :param msg: string
-            The message to see what element changed
-        :param value:
-            The changed value in the view.
-
-        :return: None
-
-        """
-
-        for l in self.listeners:
-            l.update_ui(msg, value)
-
     def set_speed_constant(self, value):
         """
         Sets the speed constant and makes sure to update the ui element related to speed_constant.
@@ -170,7 +170,7 @@ class GraphModel(IModel):
         self.animation_speed = value
         self.update_ui_elements('speed_constant', value)
 
-    def set_weights(self, weights, window):
+    def set_weights(self, weights, window=0):
         """
         Sets the weights.
 

@@ -48,22 +48,6 @@ class FileController(Controller):
         # The time (in seconds) when to load the new window
         self.time_per_window = time_per_window
 
-    def get_metadata(self):
-        return self.loader.load_data(self)
-
-    def set_repeat(self, value):
-        """
-        Sets the repeat value.
-
-        :param value: bool
-            'True' when repeat is requested, else 'False'
-
-        :return: None
-
-        """
-
-        self.repeat = value
-
     def populate_model(self, metadata):
         """
         Populates the model with the data from the loader.
@@ -112,3 +96,17 @@ class FileController(Controller):
 
         # TODO introduce error handling after last iteration of correlations
         # maybe call stop_iteration
+
+    def set_repeat(self, value):
+        """
+        Sets the repeat value.
+
+        :param value: bool
+            'True' when repeat is requested, else 'False'
+
+        :return: None
+
+        """
+
+        self.repeat = value
+

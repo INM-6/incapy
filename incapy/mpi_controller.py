@@ -31,10 +31,6 @@ class MPIController(Controller):
         # Populate the model with the data
         self.populate_model(self.metadata)
 
-        # NOTE: edge_threshold needs to be set before calling update weights
-        # TODO should not be needed any more later (once StreamView is created)
-        self.current_window = 0
-
         # The color attributes for the nodes
         self.get_color_attributes()
 
@@ -43,10 +39,6 @@ class MPIController(Controller):
 
         # The time (in seconds) when to load the new window
         self.time_per_window = time_per_window
-
-        # # FOR MPI
-        self.data_received_event = threading.Event()
-        self.data_received_event.clear()
 
         self.data = np.empty((len(self.model.vertex_ids), len(self.model.vertex_ids)))
 
@@ -57,9 +49,6 @@ class MPIController(Controller):
         self.time_per_window = 0.1
         self.current_window_time = 0
 
-    def receive_data(self):
-        self.data = get_data()
-
     def next_window(self, value=None):
 
         # XXX To avoid recursion and thus deadlock
@@ -68,7 +57,9 @@ class MPIController(Controller):
 
         self.receive_data()
         self.set_matrix_from_mpi(self.data)
-        self.data_received_event.set()
+
+    def receive_data(self):
+        self.data = get_data()
 
     def set_matrix_from_mpi(self, data):
         # TODO: Get from MPI
@@ -79,11 +70,12 @@ class MPIController(Controller):
             return
 
         self.raw_corr = data
+
         # TODO: Modularize
         with self.mutex:
             # XXX To avoid recursion and thus deadlock
             self.next_window_flag.set()
-            self.model.set_weights(self.algorithm.weights_from_corr_linear(self.raw_corr), self.current_window)
+            self.model.set_weights(self.algorithm.weights_from_corr_linear(self.raw_corr))
             # XXX To avoid recursion and thus deadlock
             self.next_window_flag.clear()
             self.set_edge_threshold()

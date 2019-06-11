@@ -14,8 +14,6 @@ class IController(ABC):
 
     @abstractmethod
     def next_window(self, value=None):
-        with open("test1", mode="w+") as f:
-            print("In parent", file=f)
         # sends the data to the model and update the matrix every few seconds
         raise NotImplementedError()
 

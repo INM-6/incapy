@@ -25,8 +25,6 @@ def get_data():
     i += 1
     i %= 5
     res = data[i]
-    with open("test3", mode="w+") as f:
-        print(i, file=f)
     return res
 
 global i
@@ -36,6 +34,4 @@ loader.load_data('/home/mueller/Projekte/INCAPY/data/corr_data.h5')
 
 data = np.empty((500, 100, 100))
 data = np.random.rand(*data.shape)
-data = 1-loader.weights
-with open("test3", mode="w+") as f:
-    print(data[0].shape, file=f)
+data = loader.weights

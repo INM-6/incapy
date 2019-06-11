@@ -105,46 +105,6 @@ class JupyterView(IView):
 
         self.current_window.observe(current_window_change, names='value')
 
-    def update_ui(self, msg, value):
-        """
-        Updates the ui elements of the view.
-
-        :param msg: string
-            The message to see what changed.
-        :param value:
-            The changed value
-
-        :return: None
-
-        """
-
-        if msg == 'window_change':
-            # Set the new value of the window_change
-            self.current_window.set_trait('value', value=value)
-
-        elif msg == 'window_adjust':
-            # Set the new value for the maximum number of windows
-            self.current_window.set_trait('max', value=value)
-
-        elif msg == 'speed_constant':
-            self.speed_animation.set_trait('value', value=value)
-
-        elif msg == 'weight_time':
-            self.time_to_update_weight.set_trait('value', value=value)
-
-    def set_colors(self, colors):
-        """
-        Sets the colors of the dynamic map
-
-        :param colors: list
-            A list of the colors (in hex), where the first element is for the first node, .. etc
-
-        :return: None
-
-        """
-
-        self.dynamic_map.opts(opts.Graph(color_index='index', cmap=colors))
-
     def show(self):
         """
         Returns the holoviews map in order to display it.
@@ -236,6 +196,33 @@ class JupyterView(IView):
         with self.out:
             display(self.dynamic_map)
 
+    def update_ui(self, msg, value):
+        """
+        Updates the ui elements of the view.
+
+        :param msg: string
+            The message to see what changed.
+        :param value:
+            The changed value
+
+        :return: None
+
+        """
+
+        if msg == 'window_change':
+            # Set the new value of the window_change
+            self.current_window.set_trait('value', value=value)
+
+        elif msg == 'window_adjust':
+            # Set the new value for the maximum number of windows
+            self.current_window.set_trait('max', value=value)
+
+        elif msg == 'speed_constant':
+            self.speed_animation.set_trait('value', value=value)
+
+        elif msg == 'weight_time':
+            self.time_to_update_weight.set_trait('value', value=value)
+
     def update(self, data):
         """
         Gets the x and y positions of the vertices and updates the plot.
@@ -266,6 +253,19 @@ class JupyterView(IView):
 
         new_data = ((edge_source, edge_target), nodes)
         self.pipe.send(new_data)
+
+    def set_colors(self, colors):
+        """
+        Sets the colors of the dynamic map
+
+        :param colors: list
+            A list of the colors (in hex), where the first element is for the first node, .. etc
+
+        :return: None
+
+        """
+
+        self.dynamic_map.opts(opts.Graph(color_index='index', cmap=colors))
 
     def _register(self, model):
         """
@@ -301,7 +301,7 @@ class JupyterView(IView):
             l.notify(msg, value)
 
 
-class NoView():
+class NoView:
     """
     For testing purposes only
 

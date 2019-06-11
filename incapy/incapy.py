@@ -135,9 +135,34 @@ class Incapy():
         :return: None
 
         """
-        with open("test2", mode="w+") as f:
-            print(self.controller.next_window, file=f)
         self.controller.next_window()
+
+    def update_window(self, value):
+        """
+        Sets the current window to 'value'.
+
+        :param value: int
+            The window to be loaded from the data
+
+        :return: None
+
+        """
+
+        self.controller.next_window(value)
+
+    def set_repeat(self, value):
+        """
+        Sets repeat to 'value', meaning that when at the last window, iteration at the first
+        window will start again.
+
+        :param value: boolean
+            True, if repeat is requested, else False
+
+        :return: None
+
+        """
+
+        self.controller.set_repeat(value)
 
     def reset(self):
         """
@@ -174,33 +199,6 @@ class Incapy():
         """
 
         self.controller.set_time_per_window(value)
-
-    def update_window(self, value):
-        """
-        Sets the current window to 'value'.
-
-        :param value: int
-            The window to be loaded from the data
-
-        :return: None
-
-        """
-
-        self.controller.next_window(value)
-
-    def set_repeat(self, value):
-        """
-        Sets repeat to 'value', meaning that when at the last window, iteration at the first
-        window will start again.
-
-        :param value: boolean
-            True, if repeat is requested, else False
-
-        :return: None
-
-        """
-
-        self.controller.set_repeat(value)
 
     # TODO: Refactor into dictionary
     def notify(self, msg, value=None):
