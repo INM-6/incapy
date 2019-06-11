@@ -37,7 +37,7 @@ class MPIController(Controller):
 
         # NOTE: edge_threshold needs to be set before calling update weights
         # TODO should not be needed any more later (once StreamView is created)
-        self.current_window = -1
+        self.current_window = 0
 
         # The color attributes for the nodes
         self.get_color_attributes()
@@ -55,27 +55,20 @@ class MPIController(Controller):
         self.init_algorithm()
         self.data = np.empty((len(self.model.vertex_ids), len(self.model.vertex_ids)))
 
+        # XXX To avoid recursion in set_matrix_from_mpi due to update of view and thus deadlock
+        self.next_window_flag = threading.Event()
+
     def receive_data(self):
-        #time.sleep(0.05)
         self.data = get_data()
 
     def next_window(self, value=None):
-        return
-        # try:
-        #     raise ValueError()
-        # except ValueError as e:
-        #     pass
-        #import traceback
-        #with open("test1", mode="w+") as f:
-        #    traceback.print_stack(file=f)
-        with open("test2", mode="w+") as f:
-            print("Data received0", file=f)
+
+        # XXX To avoid recursion and thus deadlock
+        if self.next_window_flag.isSet():
+            return
+
         self.receive_data()
-        with open("test2", mode="w+") as f:
-            print("Data received1", file=f)
         self.set_matrix_from_mpi(self.data)
-        with open("test2", mode="w+") as f:
-            print("Data received2", file=f)
 
     def start_mpi_thread(self):
         mpi_thread = threading.Thread(target=self.thread_runnable)
@@ -84,8 +77,7 @@ class MPIController(Controller):
     def thread_runnable(self):
         self.receive_data()
         self.set_matrix_from_mpi(self.data)
-        with open("threadrun", mode="w+") as f:
-            print("Matrix set", file=f)
+        self.data_received_event.set()
         while not self.stop:
             time.sleep(0.1)
             # TODO: Maybe wait in case of pause
@@ -96,14 +88,19 @@ class MPIController(Controller):
     def set_matrix_from_mpi(self, data):
         # TODO: Get from MPI
         # self.raw_corr = self.loader.weights[1]*(-1)+1
+
+        # XXX To avoid recursion and thus deadlock
+        if self.next_window_flag.is_set():
+            return
+
         self.raw_corr = data
         # TODO: Modularize
-        with open("setmat", mode="a") as f:
-            print("Trying to lock mutex", file=f)
         with self.mutex:
-            with open("setmat", mode="a") as f:
-                print("succeeded to lock mutex", file=f)
-            self.model.set_weights(self.weights_from_corr_linear(self.raw_corr), 0)
+            # XXX To avoid recursion and thus deadlock
+            self.next_window_flag.set()
+            self.model.set_weights(self.weights_from_corr_linear(self.raw_corr), self.current_window)
+            # XXX To avoid recursion and thus deadlock
+            self.next_window_flag.clear()
             self.set_edge_threshold()
 
     def run_iteration(self):
@@ -113,17 +110,10 @@ class MPIController(Controller):
         :return: None
 
         """
-        with open("runit", mode="w+") as f:
-            print("Running it", file=f)
         self.start_mpi_thread()
-        with open("runit", mode="w+") as f:
-            print("Started mpi thread", file=f)
 
         # TODO make skip weights based on number of iterations (reproducability)
         self.data_received_event.wait()
-
-        with open("test", mode='w+') as f:
-            f.write("Hilfe")
 
         # Time is needed for updating weights after certain time (update_weight_time)
         last_time = time.time()
