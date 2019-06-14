@@ -36,13 +36,13 @@ class FileController(Controller):
         super().__init__(model, view, repulsive_const=repulsive_const, anim_speed_const=anim_speed_const)
 
         # NOTE: edge_threshold needs to be set before calling update weights
-        self.current_window = -1
+        self._current_window = -1
 
         # Repeat is by default false, meaning that after the last window, no more windows will be loaded
         self.repeat = False
 
         # The time (in seconds) when to load the new window
-        self.time_per_window = time_per_window
+        self._time_per_window = time_per_window
 
     def get_metadata(self):
         return self.loader.load_data(filename=self.filename)
@@ -70,15 +70,15 @@ class FileController(Controller):
         """
 
         # XXX Prevent deadlock due to notification upon change of slider
-        if value == self.current_window:
+        if value == self._current_window:
             return
         if value is None:
-            self.current_window += 1
-            curr_window = self.current_window
+            self._current_window += 1
+            curr_window = self._current_window
 
         else:
             curr_window = value
-            self.current_window = value
+            self._current_window = value
         # sends the data to the model and update the matrix every few seconds
         try:
             self.raw_corr = self.loader.raw_corr[curr_window]
@@ -110,4 +110,4 @@ class FileController(Controller):
         self.repeat = value
 
     # Correctly set window if changed
-    current_window = property(lambda self: self.current_window, next_window)
+    current_window = property(lambda self: self._current_window, next_window)

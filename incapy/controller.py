@@ -164,8 +164,8 @@ class Controller(IController):
             max_step_size = self.anim_speed_const*dt
 
             # Load the new window, if the update_weight_time is reached
-            if curr_time - self.current_window_time > self.time_per_window:
-                if self.time_per_window != 0:
+            if curr_time - self.current_window_time > self._time_per_window:
+                if self._time_per_window != 0:
                     self.next_window()
                 # Note: Needs to be set so if slider that specifies time per window is moved away from 0,
                 # the window will not be switched immediately!!! So time needs to be around 0 at any moment
@@ -175,13 +175,6 @@ class Controller(IController):
             with self.mutex:
                 # The function to calculate the new positions
                 self.algorithm.do_step(max_step_size)
-
-    # Called automatically and as reaction to UI interaction
-    @abstractmethod
-    def next_window(self, value=None):
-        # sends the data to the model and update the matrix every few seconds
-        raise NotImplementedError()
-
 
     #########################################################
     ########### Reactions to UI interaction #################
@@ -222,19 +215,7 @@ class Controller(IController):
                 setattr(self, key, kwargs[key])
         self.algorithm.value_changed(**kwargs)
 
-    def reset(self):
-        """
-        Resets the animation.
-
-        :return: None
-
-        """
-
-        self.populate_model(self.metadata)
-        self.current_window = -1
-        self.wait_event.clear()
-        self.stop = False
-
+    # TODO: Move to subclasses
     def set_time_per_window(self, value):
         """
         Sets the time between the windows to be loaded to 'value' (set via slider by user)
@@ -247,22 +228,16 @@ class Controller(IController):
         """
 
         # Explicitly NOT reset time that current window has been used
-        self.time_per_window = value
+        self._time_per_window = value
         self.model.set_time_per_window(value)
 
-    def set_anim_speed_const(self, value):
-        """
-        Sets the animation speed constant to 'value' (set via slider by user)
+    time_per_window = property(lambda self: self._time_per_window, set_time_per_window)
 
-        :param value: float
-            A float ranging from 0.1-1 (slider values)
-
-        :return: None
-
-        """
-
-        self.anim_speed_const = value
-        self.model.set_speed_constant(value)
+    # Called automatically and as reaction to UI interaction
+    @abstractmethod
+    def next_window(self, value=None):
+        # sends the data to the model and update the matrix every few seconds
+        raise NotImplementedError()
 
     def start_iteration(self):
         """
@@ -303,4 +278,15 @@ class Controller(IController):
 
         self.wait_event.set()
 
-    time_per_window = property(lambda self: self.time_per_window, set_time_per_window)
+    def reset(self):
+        """
+        Resets the animation.
+
+        :return: None
+
+        """
+
+        self.populate_model(self.metadata)
+        self._current_window = -1
+        self.wait_event.clear()
+        self.stop = False
