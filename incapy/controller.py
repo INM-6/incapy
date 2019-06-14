@@ -18,10 +18,12 @@ class Controller(IController):
     Abstract base class / interface for the controller.
 
     """
+    changeable_values = ()
 
-    def __init__(self, model, repulsive_const, anim_speed_const, algorithm=FDLayout):
-        super().__init__(model)
+    def __init__(self, model, view, repulsive_const, anim_speed_const, algorithm=FDLayout):
+        super().__init__(model, view)
         self.model = model
+        view.add_event_listener(self)
 
         self.metadata = self.get_metadata()
 
@@ -185,17 +187,40 @@ class Controller(IController):
     ########### Reactions to UI interaction #################
     #########################################################
 
-    def change_value(self, **kwargs):
-        for key in kwargs:
-            self.parse(key, kwargs[key])
+    # TODO: Maybe refactor to dictionary
+    def notify_event(self, msg):
+        """
 
-    def parse(self, key, val):
-        if key in self.values:
-            # Might require more processing here
-            # But could be done as @property
-            setattr(self, key, val)
-        else:
-            self.algorithm.parse(key, val)
+        :param msg: string
+            The message that is sent from the view.
+
+        :param value:
+            The value that changed in the view.
+
+        :return: None
+
+        """
+
+        if msg == 'start':
+            self.start_iteration()
+        elif msg == 'stop':
+            self.stop_iteration()
+        elif msg == 'pause':
+            self.pause_iteration()
+        elif msg == 'play':
+            self.continue_iteration()
+        elif msg == 'next_window':
+            self.next_window()
+        elif msg == 'reset':
+            self.reset()
+
+        self.algorithm.notify_event(msg)
+
+    def value_changed(self, **kwargs):
+        for key in kwargs:
+            if key in self.changeable_values:
+                setattr(self, key, kwargs[key])
+        self.algorithm.value_changed(**kwargs)
 
     def reset(self):
         """
@@ -274,7 +299,8 @@ class Controller(IController):
         Continues the iteration after pausing it.
 
         :return: None
-
         """
 
         self.wait_event.set()
+
+    time_per_window = property(lambda self: self.time_per_window, set_time_per_window)

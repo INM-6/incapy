@@ -9,8 +9,16 @@ class IController(ABC):
     """
 
     @abstractmethod
-    def __init__(self, model):
+    def __init__(self, model, view):
         pass
+
+    @abstractmethod
+    def value_changed(self, msg, value=None):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def notify_event(self, msg):
+        raise NotImplementedError()
 
     @abstractmethod
     def next_window(self, value=None):

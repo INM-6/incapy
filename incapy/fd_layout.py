@@ -3,6 +3,8 @@ import numpy as np
 
 class FDLayout:
 
+    changeable_values = ("repulsive_const", "anim_speed_const")
+
     def __init__(self, model, repulsive_const, anim_speed_const):
         self.model = model
         self.repulsive_const = repulsive_const
@@ -44,6 +46,15 @@ class FDLayout:
     @staticmethod
     def weights_from_corr_linear(weights):
         return weights*(-1)+1
+
+    def value_changed(self, **kwargs):
+        """ React to changes of attributes from view"""
+        for key in kwargs:
+            if key in self.changeable_values:
+                setattr(self, key, kwargs[key])
+
+    def notify_event(self, msg):
+        pass
 
     def __call__(self, max_step_size, *args, **kwargs):
         self.do_step(max_step_size)

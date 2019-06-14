@@ -10,7 +10,9 @@ class FileController(Controller):
 
     """
 
-    def __init__(self, model, filename, data_loader, repulsive_const, anim_speed_const, time_per_window, **kwargs):
+    changeable_values = ("repeat", "time_per_window", "current_window")
+
+    def __init__(self, model, view, filename, data_loader, repulsive_const, anim_speed_const, time_per_window, **kwargs):
         """
         Constructor for the FileController class. Initializes all attributes.
 
@@ -31,7 +33,7 @@ class FileController(Controller):
         self.loader = data_loader()
         self.filename = filename
 
-        super().__init__(model, repulsive_const=repulsive_const, anim_speed_const=anim_speed_const)
+        super().__init__(model, view, repulsive_const=repulsive_const, anim_speed_const=anim_speed_const)
 
         # NOTE: edge_threshold needs to be set before calling update weights
         self.current_window = -1
@@ -107,3 +109,5 @@ class FileController(Controller):
 
         self.repeat = value
 
+    # Correctly set window if changed
+    current_window = property(lambda self: self.current_window, next_window)

@@ -91,17 +91,17 @@ class JupyterView(IView):
 
         # add listeners to the sliders when the values changes
         def on_value_change(change):
-            self.notify_listeners('speed_change', change['new'])
+            self.notify_value_change('anim_speed_const', change['new'])
 
         self.speed_animation.observe(on_value_change, names='value')
 
         def time_per_window_change(change):
-            self.notify_listeners('update_weight_change', change['new'])
+            self.notify_value_change('time_per_window', change['new'])
 
         self.time_to_update_weight.observe(time_per_window_change, names='value')
 
         def current_window_change(change):
-            self.notify_listeners('current_window_change', change['new'])
+            self.notify_value_change('current_window', change['new'])
 
         self.current_window.observe(current_window_change, names='value')
 
@@ -144,12 +144,12 @@ class JupyterView(IView):
         display(box)
 
         def next_window_action(b):
-            self.notify_listeners('next_window')
+            self.notify_event('next_window')
 
         next.on_click(next_window_action)
 
         def reset_action(b):
-            self.notify_listeners('reset')
+            self.notify_event('reset')
             b.description = '⏹'
             b.on_click(reset_action, remove=True)
             b.on_click(stop_action)
@@ -160,7 +160,7 @@ class JupyterView(IView):
             play.description = '▶️'
 
         def stop_action(b):
-            self.notify_listeners('stop')
+            self.notify_event('stop')
             b.description = '↻'
             b.on_click(stop_action, remove=True)
             b.on_click(reset_action)
@@ -169,19 +169,19 @@ class JupyterView(IView):
 
         # TODO: These could be refactored into single function
         def play_action(b):
-            self.notify_listeners('play')
+            self.notify_event('play')
             b.on_click(play_action, remove=True)
             b.on_click(pause_action)
             b.description = '⏸'
 
         def pause_action(b):
-            self.notify_listeners('pause')
+            self.notify_event('pause')
             b.on_click(pause_action, remove=True)
             b.on_click(play_action)
             b.description = '▶️'
 
         def start_action(b):
-            self.notify_listeners('start')
+            self.notify_event('start')
             b.on_click(start_action, remove=True)
             b.on_click(pause_action)
             b.description = '⏸'
@@ -189,7 +189,7 @@ class JupyterView(IView):
         play.on_click(start_action)
 
         def repeat_change(change):
-            self.notify_listeners('repeat', change['new'])
+            self.notify_value_change('repeat', change['new'])
 
         repeat.observe(repeat_change, names='value')
 
@@ -291,14 +291,16 @@ class JupyterView(IView):
 
         model.remove_listener(self)
 
-    # XXX
     def add_event_listener(self, listener):
         self.listeners.append(listener)
 
-    # XXX
-    def notify_listeners(self, msg, value=None):
+    def notify_event(self, msg):
         for l in self.listeners:
-            l.notify(msg, value)
+            l.notify_event(msg)
+
+    def notify_value_change(self, key, value):
+        for l in self.listeners:
+            l.value_changed(**{key: value})
 
 
 class NoView:

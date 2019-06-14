@@ -7,7 +7,9 @@ import numpy as np
 
 class MPIController(Controller):
 
-    def __init__(self, model, repulsive_const, anim_speed_const, time_per_window, **kwargs):
+    changeable_values = ("time_per_window",)
+
+    def __init__(self, model, view, repulsive_const, anim_speed_const, time_per_window, **kwargs):
         """
         Constructor for the FileController class. Initializes all attributes.
 
@@ -21,7 +23,7 @@ class MPIController(Controller):
             animation speed constant
         """
 
-        super().__init__(model, repulsive_const=repulsive_const, anim_speed_const=anim_speed_const)
+        super().__init__(model, view, repulsive_const=repulsive_const, anim_speed_const=anim_speed_const)
 
         # The time (in seconds) when to load the new window
         self.time_per_window = time_per_window

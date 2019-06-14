@@ -44,7 +44,7 @@ class Incapy():
         self.repulsive_const = repulsive_const
         self.time_per_window = time_per_window
         self.view =view_class(self.model, anim_speed_const=anim_speed_const, time_per_window=time_per_window, **kwargs)
-        self.controller = controller_class(self.model, repulsive_const=repulsive_const, anim_speed_const=anim_speed_const,
+        self.controller = controller_class(self.model, view=self.view, repulsive_const=repulsive_const, anim_speed_const=anim_speed_const,
                                            time_per_window=time_per_window, **kwargs)
 
     # TODO: Encapsulate algorithm and pass it alone, separate from controller
@@ -53,17 +53,18 @@ class Incapy():
     def init_mpi(self, view_class=JupyterView, algorithm=FDLayout, **mpiargs):
         self.view = view_class(self.model, anim_speed_const=self.anim_speed_const, time_per_window=self.time_per_window)
         self.controller = MPIController(self.model, repulsive_const=self.repulsive_const, anim_speed_const=self.anim_speed_const,
-                                        time_per_window=self.time_per_window, algorithm=algorithm)
+                                        time_per_window=self.time_per_window, algorithm=algorithm, view=self.view)
 
     def init_file(self, filename, view_class=JupyterView, algorithm=FDLayout, data_loader=DataLoader, **fileargs):
         self.view = view_class(self.model, anim_speed_const=self.anim_speed_const, time_per_window=self.time_per_window)
         self.controller = FileController(self.model, repulsive_const=self.repulsive_const, anim_speed_const=self.anim_speed_const,
-                                         time_per_window=self.time_per_window, filename=filename, data_loader=data_loader, algorithm=algorithm)
+                                         time_per_window=self.time_per_window, filename=filename, data_loader=data_loader, algorithm=algorithm,
+                                         view=self.view)
 
     def init_elephant(self, ccm, view_class=JupyterView, algorithm=FDLayout, **elephargs):
         self.view = view_class(self.model, anim_speed_const=self.anim_speed_const, time_per_window=self.time_per_window)
         self.controller = EleController(self.model, repulsive_const=self.repulsive_const, anim_speed_const=self.anim_speed_const,
-                                           time_per_window=self.time_per_window, ccm=ccm, algorithm=algorithm)
+                                           time_per_window=self.time_per_window, ccm=ccm, algorithm=algorithm, view=self.view)
 
     def show(self, edge_threshold=0.4):
         """
@@ -73,7 +74,7 @@ class Incapy():
 
         """
         # Register for events happening in View
-        self.view.add_event_listener(self)
+        #self.view.add_event_listener(self)
 
         return self.view.show()
 
@@ -201,38 +202,8 @@ class Incapy():
 
         self.controller.set_time_per_window(value)
 
-    # TODO: MOVE TO CONTROLLER!!!
-    # TODO: Refactor into dictionary
-    def notify(self, msg, value=None):
-        """
+    def send_event(self, msg):
+        self.controller.notify_event(msg)
 
-        :param msg: string
-            The message that is sent from the view.
-
-        :param value:
-            The value that changed in the view.
-
-        :return: None
-
-        """
-
-        if msg == 'start':
-            self.start()
-        elif msg == 'stop':
-            self.stop()
-        elif msg == 'pause':
-            self.pause()
-        elif msg == 'play':
-            self.play()
-        elif msg == 'next_window':
-            self.next_window()
-        elif msg == 'reset':
-            self.reset()
-        elif msg == 'speed_change':
-            self.change_speed(value)
-        elif msg == 'update_weight_change':
-            self.time_per_window_change(value)
-        elif msg == 'current_window_change':
-            self.update_window(value)
-        elif msg == 'repeat':
-            self.set_repeat(value)
+    def send_value_changed(self, key, value):
+        self.controller.value_changed(**{key: value})
