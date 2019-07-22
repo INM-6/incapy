@@ -10,8 +10,8 @@ def start():
     edge_ids = np.array(list(it.combinations(vertex_ids, 2)))
     positions = np.array(np.meshgrid(np.arange(10), np.arange(10)))
     arr = np.ndarray((100, 2))
-    arr[:, 0] = np.hstack(positions[0])
-    arr[:, 1] = np.hstack(positions[1])
+    arr[:, 0] = np.hstack(positions[1])
+    arr[:, 1] = np.hstack(positions[0])
     positions = arr
     res = {'positions': positions,
            'vertex_ids': vertex_ids,
@@ -25,6 +25,7 @@ def get_data():
     i += 1
     #i %= 300
     res = data[i]
+    # res = l[0]
     return res
 
 global i
@@ -37,9 +38,9 @@ data = np.empty((500, 100, 100))
 data = np.random.rand(*data.shape)
 data = loader.weights
 
-l = data
+l = data.copy()
 r = data[1]
-data = np.linspace(l[0], l[1], num=200, endpoint=False)
+data = np.linspace(l[0], l[1], num=2000, endpoint=False)
 for i in range(1, 6-1):
     to_stack = np.linspace(l[i], l[i+1], num=200, endpoint=False)
     data = np.concatenate((data, to_stack))
