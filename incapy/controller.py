@@ -137,7 +137,7 @@ class Controller(IController):
 
         # TODO make skip weights based on number of iterations (reproducability)
 
-        # Time is needed for updating weights after certain time (update_weight_time)
+        # Time is needed for updating weights after certain time (time_per_window)
         last_time = time.time()
         self.current_window_time = last_time
 
@@ -163,13 +163,13 @@ class Controller(IController):
             dt = min(dt, 0.1)
             max_step_size = self.anim_speed_const*dt
 
-            # Load the new window, if the update_weight_time is reached
+            # Load the new window, if the time_per_window is reached
             if curr_time - self.current_window_time > self._time_per_window:
                 if self._time_per_window != 0:
                     self.next_window()
                 # Note: Needs to be set so if slider that specifies time per window is moved away from 0,
                 # the window will not be switched immediately!!! So time needs to be around 0 at any moment
-                # when self.update_weight_time is 0
+                # when self.time_per_window is 0
                 self.current_window_time = curr_time
 
             with self.mutex:

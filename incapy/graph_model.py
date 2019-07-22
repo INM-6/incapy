@@ -32,7 +32,7 @@ class GraphModel(IModel):
         self.vertex_id_to_index = {}
         self.vertex_index_to_id = {}
         self.animation_speed = 1
-        self.time_to_update_weights = 5
+        self.time_per_window = 5
         self.repeat = False
 
         # Will be filled as boolean array indicating which edges surpass the threshold
@@ -78,6 +78,8 @@ class GraphModel(IModel):
 
         """
         try:
+            with open("edges", mode="w+") as f:
+                print(self.edge_threshold_mask, file=f)
             edge_sources = np.compress(self.edge_threshold_mask, self.edges, axis=0).T[0]
             edge_targets = np.compress(self.edge_threshold_mask, self.edges, axis=0).T[1]
         # If any(self.edge_threshold_mask) is False, indexing an empty array is impossible
@@ -129,9 +131,9 @@ class GraphModel(IModel):
 
         self.update_ui_elements("speed_constant", speed_constant)
 
-    def set_update_weight_time(self, time):
+    def set_time_per_window(self, time):
         """
-        Sets the update_weight time and updates the ui (slider).
+        Sets time_per_window and updates the ui (slider).
 
         :param time:
             The time in seconds
