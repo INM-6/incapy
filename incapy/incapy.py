@@ -75,6 +75,8 @@ class Incapy():
         """
         # Register for events happening in View
         #self.view.add_event_listener(self)
+        # XXX ?
+        self.controller.set_edge_threshold(threshold=edge_threshold)
 
         return self.view.show()
 

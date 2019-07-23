@@ -78,8 +78,6 @@ class GraphModel(IModel):
 
         """
         try:
-            with open("edges", mode="w+") as f:
-                print(self.edge_threshold_mask, file=f)
             edge_sources = np.compress(self.edge_threshold_mask, self.edges, axis=0).T[0]
             edge_targets = np.compress(self.edge_threshold_mask, self.edges, axis=0).T[1]
         # If any(self.edge_threshold_mask) is False, indexing an empty array is impossible

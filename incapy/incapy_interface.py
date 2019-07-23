@@ -7,7 +7,7 @@ def start():
     edge_ids = np.arange(num_vert*(num_vert-1)/2)
     edge_ids = np.empty((5050, 2), dtype=np.int32)
     import itertools as it
-    edge_ids = np.array(list(it.combinations(vertex_ids, 2)))
+    edge_ids = np.array(list(it.combinations_with_replacement(vertex_ids, 2)))
     positions = np.array(np.meshgrid(np.arange(10), np.arange(10)))
     arr = np.ndarray((100, 2))
     arr[:, 0] = np.hstack(positions[1])
