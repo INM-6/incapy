@@ -71,28 +71,32 @@ class Controller(IController):
         """
         Calculates the color attributes of the vertices.
 
+        The color depends on the position of the vertex.
+        The positions are assumed to be distributed on a 10x10 square.
+        If there are more or less than 100 vertices, the positions should be scaled accordingly.
+
         :return: None
 
         """
 
         # First, get colors in LAB and then convert to RGB hex colors to pass to the model.
-        # TODO better way to calculate number of rows?
-        num_rows = 10#math.ceil(math.sqrt(len(self.loader.vertex_ids)))
-
+        num_vert = len(self.model.vertex_ids)
         # constant
         # 100 here and 36 for l or 128 here and 20 for l
         f_lab_range = 100.0
 
-        colors_lab = np.ndarray((100, 3), dtype=float)
+        colors_lab = np.ndarray((num_vert, 3), dtype=float)
         colors_lab[:, 0] = 36
 
         pos = self.metadata['positions']
 
-        colors_lab[:, 1:3] = ((2*f_lab_range*pos[:, 0:2])/num_rows) - f_lab_range
+        # NOTE: Coloring is for placement on 10x10 grig
+        # Positions should be scaled accordingly
+        colors_lab[:, 1:3] = ((2*f_lab_range*pos[:, 0:2])/10) - f_lab_range
 
         colors_res = []
         # TODO not always 100?
-        for i in range(100):
+        for i in range(num_vert):
             currcol = colors_lab[i]
             lab = LabColor(currcol[0], currcol[1], currcol[2])
             res = convert_color(lab, sRGBColor)
