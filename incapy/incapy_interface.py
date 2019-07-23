@@ -33,15 +33,15 @@ global i
 i = 0
 
 global num_grid
-num_grid = 7
+num_grid = 10
 global num_vert
-num_vert = 37
+num_vert = 100
 
 loader = DataLoader()
 loader.load_data('/home/mueller/Projekte/INCAPY/data/corr_data.h5')
 #loader.load_data('/home/mueller/Projekte/INCAPY/data/cpp2_time_variant_data.h5')
 
-data = np.empty((500, 100, 100))
+data = np.empty((500, 200, 200))
 data = np.random.rand(*data.shape)
 data = loader.weights
 
