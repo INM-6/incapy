@@ -27,9 +27,6 @@ class MPIController(Controller):
         super().__init__(model, view, repulsive_const=repulsive_const, anim_speed_const=anim_speed_const,
                                                                 time_per_window=time_per_window, **kwargs)
 
-        # XXX To avoid recursion in set_matrix_from_mpi due to update of view and thus deadlock
-        self.next_window_flag = threading.Event()
-
         self._time_per_window = 0.01
 
     def get_metadata(self):
@@ -42,26 +39,7 @@ class MPIController(Controller):
             return
 
         self.receive_data()
-        self.set_matrix_from_mpi(self.data)
+        self.set_data(self.data)
 
     def receive_data(self):
         self.data = get_data()
-
-    def set_matrix_from_mpi(self, data):
-        # TODO: Get from MPI
-        # self.raw_corr = self.loader.weights[1]*(-1)+1
-
-        # XXX To avoid recursion and thus deadlock
-        if self.next_window_flag.is_set():
-            return
-
-        self.raw_corr = data
-
-        # TODO: Modularize
-        with self.mutex:
-            # XXX To avoid recursion and thus deadlock
-            self.next_window_flag.set()
-            self.model.set_weights(self.algorithm.weights_from_corr_linear(self.raw_corr))
-            # XXX To avoid recursion and thus deadlock
-            self.next_window_flag.clear()
-            self.set_edge_threshold()

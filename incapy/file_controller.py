@@ -67,9 +67,10 @@ class FileController(Controller):
 
         """
 
-        # XXX Prevent deadlock due to notification upon change of slider
-        if value == self._current_window:
+        # XXX To avoid recursion and thus deadlock
+        if self.next_window_flag.isSet():
             return
+
         if value is None:
             self._current_window += 1
             curr_window = self._current_window
@@ -79,14 +80,11 @@ class FileController(Controller):
             self._current_window = value
         # sends the data to the model and update the matrix every few seconds
         try:
-            self.raw_corr = self.loader.raw_corr[curr_window]
-            with self.mutex:
-                self.model.set_weights(self.algorithm.weights_from_corr_linear(self.raw_corr), curr_window)
-                self.set_edge_threshold()
-                # New window has now been used for 0 seconds
-                # Thus this time needs to be reset in order not to move on too fast
-                # If this is not done, this window will be replaced by the next after a too short period of time
-                self.current_window_time = time.time()
+            self.set_data(self.loader.raw_corr[curr_window], curr_window)
+            # New window has now been used for 0 seconds
+            # Thus this time needs to be reset in order not to move on too fast
+            # If this is not done, this window will be replaced by the next after a too short period of time
+            self.current_window_time = time.time()
         except IndexError:
             if self.repeat:
                 self.next_window(0)

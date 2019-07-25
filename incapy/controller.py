@@ -62,6 +62,9 @@ class Controller(IController):
         self._time_per_window = time_per_window
         self.current_window_time = 0
 
+        # XXX To avoid recursion in set_matrix_from_mpi due to update of view and thus deadlock
+        self.next_window_flag = threading.Event()
+
     @abstractmethod
     def get_metadata(self):
         raise NotImplementedError
@@ -110,6 +113,23 @@ class Controller(IController):
 
         # Set the colors in the model
         self.model.set_colors(colors_res)
+
+    def set_data(self, data, window=0):
+
+        # XXX To avoid recursion and thus deadlock (or endless recursion)
+        if self.next_window_flag.is_set():
+            return
+
+        self.raw_corr = data
+
+        # TODO: Modularize
+        with self.mutex:
+            # XXX To avoid recursion and thus deadlock
+            self.next_window_flag.set()
+            self.model.set_weights(self.algorithm.weights_from_corr_linear(self.raw_corr), window)
+            # XXX To avoid recursion and thus deadlock
+            self.next_window_flag.clear()
+            self.set_edge_threshold()
 
     def set_edge_threshold(self, threshold=None):
         """
