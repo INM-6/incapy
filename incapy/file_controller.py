@@ -33,16 +33,14 @@ class FileController(Controller):
         self.loader = data_loader()
         self.filename = filename
 
-        super().__init__(model, view, repulsive_const=repulsive_const, anim_speed_const=anim_speed_const, **kwargs)
+        super().__init__(model, view, repulsive_const=repulsive_const, anim_speed_const=anim_speed_const,
+                                                                time_per_window=time_per_window, **kwargs)
 
         # NOTE: edge_threshold needs to be set before calling update weights
         self._current_window = -1
 
         # Repeat is by default false, meaning that after the last window, no more windows will be loaded
         self.repeat = False
-
-        # The time (in seconds) when to load the new window
-        self._time_per_window = time_per_window
 
     def get_metadata(self):
         return self.loader.load_data(filename=self.filename)

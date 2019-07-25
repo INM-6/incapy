@@ -20,7 +20,8 @@ class Controller(IController):
     """
     changeable_values = ()
 
-    def __init__(self, model, view, repulsive_const, anim_speed_const, algorithm=FDLayout, colors=None):
+    def __init__(self, model, view, repulsive_const, anim_speed_const, time_per_window=0,
+                                                        algorithm=FDLayout, colors=None):
         super().__init__(model, view)
         self.model = model
         view.add_event_listener(self)
@@ -57,6 +58,8 @@ class Controller(IController):
         # Calling it here will result in no edges being drawn
         self.set_edge_threshold(1)
 
+        # Time (in seconds) when to load the next window
+        self._time_per_window = time_per_window
         self.current_window_time = 0
 
     @abstractmethod

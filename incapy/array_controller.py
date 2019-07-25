@@ -25,14 +25,11 @@ class ArrayController(Controller):
 
         self.all_data = data
 
-        super().__init__(model, view, repulsive_const=repulsive_const, anim_speed_const=anim_speed_const, **kwargs)
+        super().__init__(model, view, repulsive_const=repulsive_const, anim_speed_const=anim_speed_const,
+                                                                time_per_window=time_per_window, **kwargs)
 
         # XXX To avoid recursion in set_matrix_from_mpi due to update of view and thus deadlock
         self.next_window_flag = threading.Event()
-
-        # The time (in seconds) when to load the new window
-        self._time_per_window = time_per_window
-        self.current_window_time = 0
 
         self.data_index = 0
 

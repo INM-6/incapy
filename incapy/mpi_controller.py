@@ -23,17 +23,11 @@ class MPIController(Controller):
             animation speed constant
         """
 
+        # Not passing time_per_window, thus keeping it 0
         super().__init__(model, view, repulsive_const=repulsive_const, anim_speed_const=anim_speed_const, **kwargs)
-
-        # The time (in seconds) when to load the new window
-        self._time_per_window = time_per_window
 
         # XXX To avoid recursion in set_matrix_from_mpi due to update of view and thus deadlock
         self.next_window_flag = threading.Event()
-
-        # The time (in seconds) when to load the new window
-        self._time_per_window = 0.1
-        self.current_window_time = 0
 
     def get_metadata(self):
         return start()
