@@ -23,7 +23,7 @@ class MPIController(Controller):
             animation speed constant
         """
 
-        super().__init__(model, view, repulsive_const=repulsive_const, anim_speed_const=anim_speed_const)
+        super().__init__(model, view, repulsive_const=repulsive_const, anim_speed_const=anim_speed_const, **kwargs)
 
         # The time (in seconds) when to load the new window
         self._time_per_window = time_per_window

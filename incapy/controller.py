@@ -20,7 +20,7 @@ class Controller(IController):
     """
     changeable_values = ()
 
-    def __init__(self, model, view, repulsive_const, anim_speed_const, algorithm=FDLayout):
+    def __init__(self, model, view, repulsive_const, anim_speed_const, algorithm=FDLayout, colors=None):
         super().__init__(model, view)
         self.model = model
         view.add_event_listener(self)
@@ -31,7 +31,10 @@ class Controller(IController):
         self.populate_model(self.metadata)
 
         # The color attributes for the nodes
-        self.get_color_attributes()
+        if colors:
+            self.model.set_colors(colors)
+        else:
+            self.get_color_attributes()
 
         self.algorithm_class = algorithm
         self.algorithm = algorithm(self.model, repulsive_const, anim_speed_const)

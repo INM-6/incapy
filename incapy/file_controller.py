@@ -33,7 +33,7 @@ class FileController(Controller):
         self.loader = data_loader()
         self.filename = filename
 
-        super().__init__(model, view, repulsive_const=repulsive_const, anim_speed_const=anim_speed_const)
+        super().__init__(model, view, repulsive_const=repulsive_const, anim_speed_const=anim_speed_const, **kwargs)
 
         # NOTE: edge_threshold needs to be set before calling update weights
         self._current_window = -1
